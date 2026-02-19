@@ -1,294 +1,376 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>TABS Emoji PRO</title>
+    <meta charset="UTF-8">
+    <title>TABS Emoji Pro - Edición Definitiva</title>
+    <style>
+        body { margin: 0; background: #111; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Panel Lateral */
+        #leftPanel { width: 300px; background: #1b1b1b; padding: 15px; box-sizing: border-box; border-right: 2px solid #333; overflow-y: auto; display: flex; flex-direction: column; }
+        .section-title { font-size: 14px; text-transform: uppercase; color: #888; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        .buttonGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+        .unitBtn, .controlBtn { background: #333; border: 1px solid #444; border-radius: 8px; cursor: pointer; padding: 5px; height: 65px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; color: white; }
+        .unitBtn:hover, .controlBtn:hover { background: #444; border-color: #007bff; }
+        .unitBtn.selected { border: 2px solid #00ff00; background: #222; box-shadow: 0 0 10px rgba(0,255,0,0.2); }
+        .unitText { font-size: 10px; margin-top: 5px; text-align: center; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 
-<style>
-body{
-    margin:0;
-    background:#111;
-    color:white;
-    font-family:Arial;
-    display:flex;
-}
+        /* Canvas Principal */
+        #gameContainer { flex: 1; position: relative; background: #222; }
+        canvas#game { display: block; width: 100%; height: 100%; cursor: crosshair; }
 
-#leftPanel{
-    width:260px;
-    background:#1b1b1b;
-    padding:10px;
-    box-sizing:border-box;
-}
+        /* Panel Creador */
+        #creatorPanel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1b1b1b; padding: 25px; display: none; width: 460px; border: 2px solid #555; max-height: 95vh; overflow-y: auto; z-index: 100; box-shadow: 0 0 50px rgba(0,0,0,0.9); border-radius: 15px; }
+        .toolBar { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; background: #252525; padding: 10px; border-radius: 10px; }
+        .toolBtn { background: #444; border: none; color: white; width: 40px; height: 40px; cursor: pointer; border-radius: 6px; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        .toolBtn.active { background: #007bff; box-shadow: 0 0 8px #007bff; }
 
-.buttonGrid{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:3px;
-    margin-bottom:6px;
-}
-
-.unitBtn,.controlBtn{
-    background:#333;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    padding:2px;
-    height:48px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    transition:0.2s;
-    color:white;
-}
-.unitBtn:hover,.controlBtn:hover{ background:#555; }
-
-.unitEmoji{ font-size:16px; line-height:16px; }
-.unitText{ font-size:8px;margin-top:2px;text-align:center;color:#ccc; }
-
-canvas{ background:#222; flex:1; }
-
-#creatorPanel{
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    background:#1b1b1b;
-    padding:15px;
-    display:none;
-    width:380px;
-    border:2px solid #555;
-    max-height:90vh;
-    overflow:auto;
-}
-
-input,select{
-    width:100%;
-    margin:4px 0;
-    padding:5px;
-    background:#222;
-    color:white;
-    border:1px solid #444;
-    box-sizing:border-box;
-}
-
-.crLabel{ font-size:12px;margin-top:6px;color:#ddd;display:block; }
-</style>
+        input, select { width: 100%; margin: 5px 0 12px 0; padding: 10px; background: #2a2a2a; color: white; border: 1px solid #444; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .crLabel { font-size: 12px; color: #aaa; display: block; font-weight: bold; margin-bottom: 2px; }
+        .statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        #pixelCanvas { border: 2px solid #555; background: white; image-rendering: pixelated; display: block; margin: 0 auto; cursor: crosshair; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        
+        button.mainAction { background: #28a745; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 15px; transition: 0.3s; }
+        button.mainAction:hover { background: #218838; transform: translateY(-2px); }
+    </style>
 </head>
 <body>
 
 <div id="leftPanel">
-<h3>Unidades</h3>
-<div id="unitButtons" class="buttonGrid"></div>
-
-<h3>Controles</h3>
-<div class="buttonGrid">
-<button class="controlBtn" onclick="toggleTeam()" id="teamBtn">🔵<div class="unitText">Bando</div></button>
-<button class="controlBtn" onclick="startBattle()">▶️<div class="unitText">Start</div></button>
-<button class="controlBtn" onclick="clearUnits()">🗑<div class="unitText">Limpiar</div></button>
-<button class="controlBtn" onclick="openCreator()">➕<div class="unitText">Crear</div></button>
+    <div class="section-title">Tropas Disponibles</div>
+    <div id="unitButtons" class="buttonGrid"></div>
+    
+    <div class="section-title">Controles de Batalla</div>
+    <div class="buttonGrid">
+        <button class="controlBtn" onclick="toggleTeam()" id="teamBtn">🔵<div class="unitText">Bando</div></button>
+        <button class="controlBtn" onclick="startBattle()" style="background:#1e3d1a;">▶️<div class="unitText">Empezar</div></button>
+        <button class="controlBtn" onclick="clearUnits()">🗑<div class="unitText">Limpiar</div></button>
+        <button class="controlBtn" onclick="openCreator()" style="background:#3d1a1a;">➕<div class="unitText">Nueva</div></button>
+    </div>
 </div>
-</div>
 
-<canvas id="game" width="900" height="600"></canvas>
+<div id="gameContainer">
+    <canvas id="game"></canvas>
+</div>
 
 <div id="creatorPanel">
-<h3>Creador</h3>
+    <h2 style="margin:0 0 20px 0; text-align:center;">Laboratorio de Tropas</h2>
+    
+    <label class="crLabel">Identificación</label>
+    <input id="unitName" placeholder="Nombre de la unidad...">
 
-<label class="crLabel">Nombre</label>
-<input id="unitName">
+    <div class="statsGrid">
+        <div><label class="crLabel">❤️ Salud</label><input id="hpInput" type="number" value="100"></div>
+        <div><label class="crLabel">⚔️ Daño</label><input id="damageInput" type="number" value="15"></div>
+        <div><label class="crLabel">🏃 Velocidad</label><input id="speedInput" type="number" value="1.5" step="0.1"></div>
+        <div><label class="crLabel">🎯 Rango (px)</label><input id="rangeInput" type="number" value="35"></div>
+    </div>
 
-<label class="crLabel">Emoji base</label>
-<input id="emojiInput" value="😀">
+    <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
 
-<hr>
+    <div class="toolBar">
+        <button class="toolBtn active" onclick="setTool('pen')" title="Pincel">✏️</button>
+        <button class="toolBtn" onclick="setTool('line')" title="Línea Directa">📏</button>
+        <button class="toolBtn" onclick="setTool('fill')" title="Bote de Pintura">🪣</button>
+        <button class="toolBtn" onclick="setTool('eraser')" title="Borrador">🧽</button>
+    </div>
 
-<h4>🎨 Sprite Pixel Art</h4>
+    <canvas id="pixelCanvas" width="224" height="224"></canvas>
 
-<canvas id="pixelCanvas" width="192" height="192"
-style="border:2px solid #555;background:white;image-rendering:pixelated;"></canvas>
+    <div class="statsGrid" style="margin-top:15px;">
+        <div>
+            <label class="crLabel">Resolución</label>
+            <select id="gridRes" onchange="resetPixelGrid()">
+                <option value="8">8x8 (Retro)</option>
+                <option value="16" selected>16x16 (Estándar)</option>
+                <option value="32">32x32 (Detalle)</option>
+            </select>
+        </div>
+        <div><label class="crLabel">Color</label><input type="color" id="pixelColor" value="#cc0000"></div>
+    </div>
 
-<label class="crLabel">Color</label>
-<input type="color" id="pixelColor" value="#ff0000">
-
-<label class="crLabel">Tamaño pixel</label>
-<select id="pixelSize">
-<option value="6">Pequeño</option>
-<option value="12" selected>Medio</option>
-<option value="24">Grande</option>
-</select>
-
-<div style="display:flex;gap:6px;margin-top:6px">
-<button onclick="clearPixelCanvas()">Borrar</button>
-<button onclick="savePixelSprite()">Guardar Sprite</button>
-</div>
-
-<hr>
-
-<label class="crLabel">❤️ HP</label>
-<input id="hpInput" type="number" value="100">
-
-<label class="crLabel">⚔️ Daño</label>
-<input id="damageInput" type="number" value="10">
-
-<label class="crLabel">🏃 Velocidad</label>
-<input id="speedInput" type="number" value="1" step="0.1">
-
-<button onclick="createCustomUnit()">Crear</button>
-<button onclick="closeCreator()">Cerrar</button>
+    <button class="mainAction" onclick="createCustomUnit()">FINALIZAR Y GUARDAR</button>
+    <button onclick="closeCreator()" style="width:100%; background:none; border:none; color:#777; cursor:pointer; margin-top:10px;">Cancelar</button>
 </div>
 
 <script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+/* ================= CONFIGURACIÓN DE VIDEOJUEGO ================= */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let units = [], baseUnits = [], selectedUnit = null, currentTeam = "blue", battleStarted = false;
 
-let units=[];
-let baseUnits=[];
-let selectedUnit=null;
-let currentTeam="blue";
-let battleStarted=false;
+// Ajustar canvas al tamaño de la pantalla
+function resize() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+}
+window.onresize = resize;
+resize();
 
-/* ===== PIXEL EDITOR ===== */
-const pixelCanvas=document.getElementById("pixelCanvas");
-const pctx=pixelCanvas.getContext("2d");
-let drawing=false;
-let customSprite=null;
+/* ================= EDITOR DE PIXEL ART PRO ================= */
+const pCanvas = document.getElementById("pixelCanvas");
+const pctx = pCanvas.getContext("2d");
+let drawing = false, currentTool = 'pen', startX, startY;
+let pixelGrid = []; 
 
-pixelCanvas.onmousedown=()=>drawing=true;
-pixelCanvas.onmouseup=()=>drawing=false;
-pixelCanvas.onmouseleave=()=>drawing=false;
-pixelCanvas.onmousemove=e=>{
-    if(!drawing) return;
-    const rect=pixelCanvas.getBoundingClientRect();
-    const size=parseInt(pixelSize.value);
-    const x=Math.floor((e.clientX-rect.left)/size)*size;
-    const y=Math.floor((e.clientY-rect.top)/size)*size;
-    pctx.fillStyle=pixelColor.value;
-    pctx.fillRect(x,y,size,size);
+function resetPixelGrid() {
+    const res = parseInt(document.getElementById("gridRes").value);
+    pixelGrid = Array(res).fill().map(() => Array(res).fill(null));
+    renderGrid();
+}
+
+function renderGrid() {
+    const res = pixelGrid.length;
+    const pSize = pCanvas.width / res;
+    pctx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+    
+    // Dibujar los píxeles guardados
+    for(let y=0; y<res; y++){
+        for(let x=0; x<res; x++){
+            if(pixelGrid[y][x]){
+                pctx.fillStyle = pixelGrid[y][x];
+                pctx.fillRect(x*pSize, y*pSize, pSize, pSize);
+            }
+        }
+    }
+    
+    // Guía central tenue
+    pctx.strokeStyle = "rgba(0,0,0,0.1)";
+    pctx.beginPath();
+    pctx.moveTo(pCanvas.width/2, 0); pctx.lineTo(pCanvas.width/2, pCanvas.height);
+    pctx.moveTo(0, pCanvas.height/2); pctx.lineTo(pCanvas.width, pCanvas.height/2);
+    pctx.stroke();
+}
+
+function setTool(tool) {
+    currentTool = tool;
+    document.querySelectorAll('.toolBtn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
+
+pCanvas.onmousedown = e => {
+    drawing = true;
+    const rect = pCanvas.getBoundingClientRect();
+    const res = pixelGrid.length;
+    const pSize = pCanvas.width / res;
+    startX = Math.floor((e.clientX - rect.left) / pSize);
+    startY = Math.floor((e.clientY - rect.top) / pSize);
+    
+    if(currentTool === 'fill') floodFill(startX, startY, document.getElementById("pixelColor").value);
+    else if(currentTool === 'pen' || currentTool === 'eraser') drawAt(startX, startY);
 };
 
-function clearPixelCanvas(){
-    pctx.clearRect(0,0,pixelCanvas.width,pixelCanvas.height);
-    customSprite=null;
-}
-function savePixelSprite(){
-    customSprite=pixelCanvas.toDataURL();
-    alert("Sprite guardado");
+window.onmouseup = e => {
+    if(drawing && currentTool === 'line'){
+        const rect = pCanvas.getBoundingClientRect();
+        const res = pixelGrid.length;
+        const pSize = pCanvas.width / res;
+        const endX = Math.floor((e.clientX - rect.left) / pSize);
+        const endY = Math.floor((e.clientY - rect.top) / pSize);
+        drawLine(startX, startY, endX, endY);
+    }
+    drawing = false;
+    renderGrid();
+};
+
+pCanvas.onmousemove = e => {
+    if(!drawing || currentTool === 'fill' || currentTool === 'line') return;
+    const rect = pCanvas.getBoundingClientRect();
+    const res = pixelGrid.length;
+    const pSize = pCanvas.width / res;
+    const x = Math.floor((e.clientX - rect.left) / pSize);
+    const y = Math.floor((e.clientY - rect.top) / pSize);
+    drawAt(x, y);
+};
+
+function drawAt(x, y) {
+    const res = pixelGrid.length;
+    if(x>=0 && x<res && y>=0 && y<res){
+        pixelGrid[y][x] = (currentTool === 'eraser') ? null : document.getElementById("pixelColor").value;
+        renderGrid();
+    }
 }
 
-/* ===== UI ===== */
-function openCreator(){ creatorPanel.style.display="block"; }
-function closeCreator(){ creatorPanel.style.display="none"; }
-
-function toggleTeam(){
-    currentTeam=currentTeam==="blue"?"red":"blue";
-    teamBtn.innerHTML=(currentTeam==="blue"?"🔵":"🔴")+'<div class="unitText">Bando</div>';
+function drawLine(x0, y0, x1, y1) {
+    let dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
+    let sx = (x0 < x1) ? 1 : -1, sy = (y0 < y1) ? 1 : -1;
+    let err = dx - dy;
+    while(true) {
+        if(x0 >= 0 && x0 < pixelGrid.length && y0 >= 0 && y0 < pixelGrid.length)
+            pixelGrid[y0][x0] = document.getElementById("pixelColor").value;
+        if ((x0 === x1) && (y0 === y1)) break;
+        let e2 = 2 * err;
+        if (e2 > -dy) { err -= dy; x0 += sx; }
+        if (e2 < dx) { err += dx; y0 += sy; }
+    }
 }
 
-function createCustomUnit(){
-    const u={
-        name:unitName.value||"Custom",
-        emoji:emojiInput.value||"😀",
-        sprite:customSprite||null,
-        hp:+hpInput.value,
-        damage:+damageInput.value,
-        speed:+speedInput.value
+function floodFill(x, y, newCol) {
+    const targetCol = pixelGrid[y][x];
+    if(targetCol === newCol) return;
+    const res = pixelGrid.length;
+    const stack = [[x, y]];
+    while(stack.length > 0){
+        const [cx, cy] = stack.pop();
+        if(cx<0 || cx>=res || cy<0 || cy>=res || pixelGrid[cy][cx] !== targetCol) continue;
+        pixelGrid[cy][cx] = newCol;
+        stack.push([cx+1, cy], [cx-1, cy], [cx, cy+1], [cx, cy-1]);
+    }
+    renderGrid();
+}
+
+/* ================= LÓGICA DE COMBATE ================= */
+class Unit {
+    constructor(x, y, team, data) {
+        Object.assign(this, data);
+        this.x = x; 
+        this.y = y;
+        this.team = team;
+        this.maxHp = this.hp; 
+        this.cool = 0;
+        if(this.sprite) {
+            this.img = new Image();
+            this.img.src = this.sprite;
+        }
+    }
+
+    update() {
+        if(!battleStarted) return;
+        let enemies = units.filter(u => u.team !== this.team);
+        if(!enemies.length) return;
+        
+        // Buscar enemigo más cercano
+        let target = enemies.reduce((prev, curr) => 
+            Math.hypot(curr.x - this.x, curr.y - this.y) < Math.hypot(prev.x - this.x, prev.y - this.y) ? curr : prev
+        );
+
+        let d = Math.hypot(target.x - this.x, target.y - this.y);
+        
+        if(d > this.range) {
+            this.x += (target.x - this.x) / d * this.speed;
+            this.y += (target.y - this.y) / d * this.speed;
+        } else if(this.cool <= 0) {
+            target.hp -= this.damage;
+            this.cool = 50; 
+        }
+        if(this.cool > 0) this.cool--;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        
+        const size = 42; // Tamaño visual en batalla
+
+        if(this.img) {
+            // ANCLAJE CENTRAL: x - mitad del ancho, y - mitad del alto
+            ctx.drawImage(this.img, this.x - size/2, this.y - size/2, size, size);
+        } else {
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "24px Arial";
+            ctx.fillText("👤", this.x, this.y);
+        }
+        
+        // Barra de Vida centrada
+        let r = Math.max(0, this.hp/this.maxHp);
+        ctx.fillStyle = "#333";
+        ctx.fillRect(this.x - 20, this.y - 32, 40, 5);
+        ctx.fillStyle = this.team === "blue" ? "#3498db" : "#e74c3c";
+        ctx.fillRect(this.x - 20, this.y - 32, 40 * r, 5);
+        
+        ctx.restore();
+    }
+}
+
+/* ================= INTERFAZ Y EVENTOS ================= */
+function openCreator() { 
+    document.getElementById("creatorPanel").style.display="block"; 
+    resetPixelGrid(); 
+}
+function closeCreator() { 
+    document.getElementById("creatorPanel").style.display="none"; 
+}
+
+function toggleTeam() {
+    currentTeam = currentTeam === "blue" ? "red" : "blue";
+    document.getElementById("teamBtn").innerHTML = (currentTeam === "blue" ? "🔵" : "🔴") + '<div class="unitText">Bando</div>';
+}
+
+function createCustomUnit() {
+    const u = {
+        name: document.getElementById("unitName").value || "Tropa",
+        sprite: pCanvas.toDataURL(), // Guarda lo dibujado
+        hp: +document.getElementById("hpInput").value,
+        damage: +document.getElementById("damageInput").value,
+        speed: +document.getElementById("speedInput").value,
+        range: +document.getElementById("rangeInput").value
     };
     baseUnits.push(u);
     updateUnitButtons();
+    closeCreator();
 }
 
-function updateUnitButtons(){
-    unitButtons.innerHTML="";
-    baseUnits.forEach(u=>{
-        let b=document.createElement("button");
-        b.className="unitBtn";
-        b.innerHTML=`<div class="unitEmoji">${u.emoji}</div>
-                     <div class="unitText">${u.name}</div>`;
-        b.onclick=()=>selectedUnit=u;
-        unitButtons.appendChild(b);
+function updateUnitButtons() {
+    const container = document.getElementById("unitButtons");
+    container.innerHTML = "";
+    baseUnits.forEach((u, i) => {
+        let b = document.createElement("button");
+        b.className = "unitBtn";
+        b.innerHTML = `<img src="${u.sprite}" width="28" height="28" style="image-rendering:pixelated"><div class="unitText">${u.name}</div>`;
+        b.onclick = () => {
+            selectedUnit = u;
+            document.querySelectorAll('.unitBtn').forEach(x => x.classList.remove('selected'));
+            b.classList.add('selected');
+        };
+        container.appendChild(b);
     });
 }
 
-/* ===== UNIT CLASS ===== */
-class Unit{
-constructor(x,y,team,data){
-    Object.assign(this,data);
-    this.x=x;
-    this.y=y;
-    this.team=team;
-    this.maxHp=this.hp;
-    this.cool=0;
-}
+// CLICK EN EL CAMPO DE BATALLA (SISTEMA DE ANCLAJE CENTRAL)
+canvas.onclick = e => {
+    if(!selectedUnit || battleStarted) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    // Cálculo de posición relativa exacta
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-update(){
-    if(!battleStarted) return;
-    let enemy=units.find(u=>u.team!==this.team);
-    if(!enemy) return;
-
-    let dx=enemy.x-this.x;
-    let dy=enemy.y-this.y;
-    let d=Math.hypot(dx,dy);
-
-    if(d>30){
-        this.x+=dx/d*this.speed;
-        this.y+=dy/d*this.speed;
-    }else if(this.cool<=0){
-        enemy.hp-=this.damage;
-        this.cool=40;
-    }
-    if(this.cool>0) this.cool--;
-}
-
-draw(){
-    ctx.save();
-    ctx.textAlign="center";
-    ctx.font="22px Arial";
-
-    if(this.sprite){
-        if(!this.img){
-            this.img=new Image();
-            this.img.src=this.sprite;
-        }
-        ctx.drawImage(this.img,this.x-18,this.y-18,36,36);
-    }else{
-        ctx.fillText(this.emoji,this.x,this.y);
-    }
-
-    ctx.restore();
-
-    let r=this.hp/this.maxHp;
-    ctx.fillStyle="#333";
-    ctx.fillRect(this.x-20,this.y-30,40,5);
-    ctx.fillStyle="lime";
-    ctx.fillRect(this.x-20,this.y-30,40*r,5);
-}
-}
-
-/* ===== CANVAS CLICK ===== */
-canvas.onclick=e=>{
-    if(!selectedUnit||battleStarted) return;
-    const r=canvas.getBoundingClientRect();
-    units.push(new Unit(
-        e.clientX-r.left,
-        e.clientY-r.top,
-        currentTeam,
-        selectedUnit
-    ));
+    units.push(new Unit(x, y, currentTeam, selectedUnit));
 };
 
-function clearUnits(){ units=[]; battleStarted=false; }
-function startBattle(){ battleStarted=true; }
+function clearUnits() { units = []; battleStarted = false; }
+function startBattle() { battleStarted = true; }
 
-/* ===== LOOP ===== */
-function loop(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    units.forEach(u=>u.update());
-    units=units.filter(u=>u.hp>0);
-    units.forEach(u=>u.draw());
+/* ================= BUCLE PRINCIPAL (LOOP) ================= */
+function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Dibujar suelo (opcional)
+    ctx.strokeStyle = "#2a2a2a";
+    ctx.lineWidth = 1;
+    for(let i=0; i<canvas.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+    for(let j=0; j<canvas.height; j+=50) { ctx.beginPath(); ctx.moveTo(0,j); ctx.lineTo(canvas.width,j); ctx.stroke(); }
+
+    units.forEach(u => u.update());
+    units = units.filter(u => u.hp > 0);
+    units.forEach(u => u.draw());
+    
     requestAnimationFrame(loop);
 }
+
+// Iniciar con un ejemplo básico
+baseUnits.push({
+    name: "Soldado", 
+    sprite: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADZJREFUOE9jZKAQMFKon2HUAIYhY8CoAcYRYAAmYmKghmYwDW8Atp8Y6YCRZAn0eIIMYMApBgB7fA8R6DInmAAAAABJRU5ErkJggg==",
+    hp: 100, damage: 12, speed: 1.2, range: 35
+});
+updateUnitButtons();
+resetPixelGrid();
 loop();
 </script>
+
 </body>
 </html>
