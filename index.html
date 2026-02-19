@@ -13,7 +13,6 @@ body{
     display:flex;
 }
 
-/* PANEL IZQUIERDO */
 #leftPanel{
     width:260px;
     background:#1b1b1b;
@@ -21,7 +20,6 @@ body{
     box-sizing:border-box;
 }
 
-/* GRID DE BOTONES */
 .buttonGrid{
     display:grid;
     grid-template-columns:repeat(5,1fr);
@@ -29,8 +27,7 @@ body{
     margin-bottom:6px;
 }
 
-/* BOTONES CUADRITOS PEQUEÑOS */
-.unitBtn{
+.unitBtn,.controlBtn{
     background:#333;
     border:none;
     border-radius:5px;
@@ -44,49 +41,13 @@ body{
     transition:0.2s;
     color:white;
 }
+.unitBtn:hover,.controlBtn:hover{ background:#555; }
 
-.unitBtn:hover{
-    background:#555;
-}
+.unitEmoji{ font-size:16px; line-height:16px; }
+.unitText{ font-size:8px;margin-top:2px;text-align:center;color:#ccc; }
 
-.unitEmoji{
-    font-size:16px;
-    line-height:16px;
-}
+canvas{ background:#222; flex:1; }
 
-.unitText{
-    font-size:8px;
-    margin-top:2px;
-    text-align:center;
-    color:#ccc;
-}
-
-/* BOTONES DE CONTROL */
-.controlBtn{
-    background:#333;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    padding:2px;
-    height:48px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    font-size:12px;
-    color:white;
-}
-
-.controlBtn:hover{
-    background:#555;
-}
-
-canvas{
-    background:#222;
-    flex:1;
-}
-
-/* CREADOR */
 #creatorPanel{
     position:fixed;
     top:50%;
@@ -95,7 +56,7 @@ canvas{
     background:#1b1b1b;
     padding:15px;
     display:none;
-    width:360px;
+    width:380px;
     border:2px solid #555;
     max-height:90vh;
     overflow:auto;
@@ -111,33 +72,12 @@ input,select{
     box-sizing:border-box;
 }
 
-#emojiGrid{
-    display:flex;
-    overflow-x:auto;
-    gap:6px;
-    padding:5px 0;
-}
-
-.emojiOption{
-    font-size:22px;
-    cursor:pointer;
-    padding:5px;
-    border-radius:6px;
-}
-
-.emojiSelected{
-    background:#444;
-    outline:2px solid white;
-}
-
-/* pequeño helper para labels */
-.crLabel{ font-size:12px; margin-top:6px; color:#ddd; display:block; }
+.crLabel{ font-size:12px;margin-top:6px;color:#ddd;display:block; }
 </style>
 </head>
 <body>
 
 <div id="leftPanel">
-
 <h3>Unidades</h3>
 <div id="unitButtons" class="buttonGrid"></div>
 
@@ -148,7 +88,6 @@ input,select{
 <button class="controlBtn" onclick="clearUnits()">🗑<div class="unitText">Limpiar</div></button>
 <button class="controlBtn" onclick="openCreator()">➕<div class="unitText">Crear</div></button>
 </div>
-
 </div>
 
 <canvas id="game" width="900" height="600"></canvas>
@@ -157,103 +96,44 @@ input,select{
 <h3>Creador</h3>
 
 <label class="crLabel">Nombre</label>
-<input id="unitName" placeholder="Nombre">
+<input id="unitName">
 
-<label class="crLabel">Categoría (afecta arma)</label>
-<select id="categoryFilter">
-<option value="all">Todas</option>
-<option value="monstruos">Monstruos</option>
-<option value="armas">Armas</option>
-<option value="magia">Magia</option>
-<option value="animales">Animales</option>
+<label class="crLabel">Emoji base</label>
+<input id="emojiInput" value="😀">
+
+<hr>
+
+<h4>🎨 Sprite Pixel Art</h4>
+
+<canvas id="pixelCanvas" width="192" height="192"
+style="border:2px solid #555;background:white;image-rendering:pixelated;"></canvas>
+
+<label class="crLabel">Color</label>
+<input type="color" id="pixelColor" value="#ff0000">
+
+<label class="crLabel">Tamaño pixel</label>
+<select id="pixelSize">
+<option value="6">Pequeño</option>
+<option value="12" selected>Medio</option>
+<option value="24">Grande</option>
 </select>
 
-<label class="crLabel">🔎 Buscar Emoji</label>
-<input id="searchEmoji" placeholder="Buscar emoji">
+<div style="display:flex;gap:6px;margin-top:6px">
+<button onclick="clearPixelCanvas()">Borrar</button>
+<button onclick="savePixelSprite()">Guardar Sprite</button>
+</div>
 
-<div id="emojiGrid"></div>
+<hr>
 
-<button onclick="randomEmoji()">🎲 Random</button>
-
-<!-- Estadísticas básicas -->
-<label class="crLabel">❤️ Vida (HP)</label>
-<input id="hpInput" type="number" value="100" placeholder="HP">
+<label class="crLabel">❤️ HP</label>
+<input id="hpInput" type="number" value="100">
 
 <label class="crLabel">⚔️ Daño</label>
-<input id="damageInput" type="number" value="10" placeholder="Daño">
+<input id="damageInput" type="number" value="10">
 
-<label class="crLabel">🏃 Velocidad (movimiento)</label>
-<input id="speedInput" type="number" value="1" step="0.1" placeholder="Velocidad">
+<label class="crLabel">🏃 Velocidad</label>
+<input id="speedInput" type="number" value="1" step="0.1">
 
-<!-- Nuevas estadísticas añadidas -->
-<label class="crLabel">🛡️ Defensa</label>
-<input id="defenseInput" type="number" value="5" placeholder="Defensa">
-
-<label class="crLabel">🎯 Precisión (%)</label>
-<input id="accuracyInput" type="number" value="90" min="0" max="100" placeholder="Precisión">
-
-<label class="crLabel">🔥 Velocidad de ataque (attacks/sec)</label>
-<input id="attackSpeedInput" type="number" value="1" step="0.1" placeholder="Velocidad de ataque">
-
-<label class="crLabel">📏 Alcance</label>
-<input id="rangeInput" type="number" value="30" placeholder="Alcance">
-
-<label class="crLabel">💥 Crítico (%)</label>
-<input id="critInput" type="number" value="5" min="0" max="100" placeholder="Crítico">
-
-<label class="crLabel">🧠 Inteligencia (IQ)</label>
-<input id="iqInput" type="number" value="1" placeholder="IQ">
-
-<label class="crLabel">🪖 Armadura mágica</label>
-<input id="magicArmorInput" type="number" value="0" placeholder="Armadura mágica">
-
-<!-- === NUEVOS SELECTORES: TIPO Y ARMA === -->
-<label class="crLabel">🌍 Tipo elemental</label>
-<select id="typeSelect">
-    <option value="neutral">Neutral</option>
-    <option value="fuego">Fuego</option>
-    <option value="agua">Agua</option>
-    <option value="tierra">Tierra</option>
-    <option value="aire">Aire</option>
-    <option value="hielo">Hielo</option>
-    <option value="luz">Luz</option>
-    <option value="oscuro">Oscuro</option>
-</select>
-
-<label class="crLabel">🗡️ Arma</label>
-<select id="weaponSelect">
-    <option value="">Ninguna</option>
-    <option value="⚔️">Espada</option>
-    <option value="🏹">Arco</option>
-    <option value="🔥">Fuego</option>
-    <option value="✨">Magia</option>
-    <option value="💥">Golpe</option>
-    <option value="🦴">Mordida</option>
-    <option value="☠️">Veneno</option>
-    <option value="🌿">Naturaleza</option>
-    <option value="🛡">Escudo</option>
-</select>
-
-<!-- === HABILIDAD, MANA, COOLDOWN === -->
-<label class="crLabel">✨ Habilidad especial</label>
-<select id="abilitySelect">
-<option value="">Ninguna</option>
-<option value="fireball">Bola de fuego</option>
-<option value="heal">Curación</option>
-<option value="shield">Escudo mágico</option>
-<option value="poisonAura">Aura venenosa</option>
-<option value="rage">Furia</option>
-<option value="blink">Teletransporte</option>
-<option value="summon">Invocar copia</option>
-</select>
-
-<label class="crLabel">🔵 Mana máximo</label>
-<input id="manaInput" type="number" value="100">
-
-<label class="crLabel">🔁 Cooldown habilidad (seg)</label>
-<input id="cooldownInput" type="number" value="5">
-
-<div style="height:6px"></div>
 <button onclick="createCustomUnit()">Crear</button>
 <button onclick="closeCreator()">Cerrar</button>
 </div>
@@ -263,858 +143,152 @@ const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d");
 
 let units=[];
+let baseUnits=[];
 let selectedUnit=null;
-let selectedEmoji="😀";
 let currentTeam="blue";
 let battleStarted=false;
-let favorites=[];
 
-/* ===== SISTEMA DE ELEMENTOS ===== */
-const elementBonus={
-    fuego:  {tierra:1.4, hielo:1.5, agua:0.6},
-    agua:   {fuego:1.4, tierra:0.8, aire:1.2},
-    tierra: {agua:1.3, aire:0.7, fuego:0.9},
-    aire:   {tierra:1.3, fuego:1.1, hielo:0.9},
-    hielo:  {aire:1.4, tierra:1.2, fuego:0.5},
-    luz:    {oscuro:1.5},
-    oscuro: {luz:1.5}
+/* ===== PIXEL EDITOR ===== */
+const pixelCanvas=document.getElementById("pixelCanvas");
+const pctx=pixelCanvas.getContext("2d");
+let drawing=false;
+let customSprite=null;
+
+pixelCanvas.onmousedown=()=>drawing=true;
+pixelCanvas.onmouseup=()=>drawing=false;
+pixelCanvas.onmouseleave=()=>drawing=false;
+pixelCanvas.onmousemove=e=>{
+    if(!drawing) return;
+    const rect=pixelCanvas.getBoundingClientRect();
+    const size=parseInt(pixelSize.value);
+    const x=Math.floor((e.clientX-rect.left)/size)*size;
+    const y=Math.floor((e.clientY-rect.top)/size)*size;
+    pctx.fillStyle=pixelColor.value;
+    pctx.fillRect(x,y,size,size);
 };
 
-/* emoji catalog (compact) */
-let emojiData=[
-{emoji:"😀",cat:"all"},{emoji:"😃",cat:"all"},{emoji:"😄",cat:"all"},{emoji:"😁",cat:"all"},{emoji:"😆",cat:"all"},{emoji:"😅",cat:"all"},{emoji:"😂",cat:"all"},{emoji:"🙂",cat:"all"},{emoji:"🙃",cat:"all"},{emoji:"😉",cat:"all"},{emoji:"😊",cat:"all"},{emoji:"😇",cat:"magia"},{emoji:"🥰",cat:"all"},{emoji:"😍",cat:"all"},{emoji:"🤩",cat:"all"},{emoji:"😘",cat:"all"},{emoji:"😗",cat:"all"},{emoji:"😜",cat:"all"},{emoji:"🤪",cat:"all"},{emoji:"😎",cat:"all"},
-
-/* ===== PERSONAJES ===== */
-{emoji:"🧙",cat:"magia"},{emoji:"🧙‍♀️",cat:"magia"},{emoji:"🧝",cat:"magia"},{emoji:"🧝‍♀️",cat:"magia"},{emoji:"🧛",cat:"monstruos"},{emoji:"🧛‍♀️",cat:"monstruos"},{emoji:"🧟",cat:"monstruos"},{emoji:"🧟‍♀️",cat:"monstruos"},{emoji:"🧞",cat:"magia"},{emoji:"🧞‍♀️",cat:"magia"},{emoji:"🧜",cat:"magia"},{emoji:"🧜‍♀️",cat:"magia"},{emoji:"🧚",cat:"magia"},{emoji:"🧚‍♀️",cat:"magia"},{emoji:"👮",cat:"all"},{emoji:"🕵️",cat:"all"},{emoji:"👷",cat:"all"},{emoji:"🥷",cat:"all"},{emoji:"🧑‍🚀",cat:"all"},{emoji:"🧑‍🚒",cat:"all"},
-
-/* ===== MONSTRUOS ===== */
-{emoji:"🐉",cat:"monstruos"},{emoji:"🐲",cat:"monstruos"},{emoji:"👹",cat:"monstruos"},{emoji:"👺",cat:"monstruos"},{emoji:"👻",cat:"monstruos"},{emoji:"💀",cat:"monstruos"},{emoji:"☠️",cat:"monstruos"},{emoji:"👽",cat:"monstruos"},{emoji:"👾",cat:"monstruos"},{emoji:"🤖",cat:"monstruos"},{emoji:"🕷",cat:"monstruos"},{emoji:"🦂",cat:"monstruos"},{emoji:"🐍",cat:"monstruos"},{emoji:"🦖",cat:"monstruos"},{emoji:"🦕",cat:"monstruos"},{emoji:"🐙",cat:"monstruos"},{emoji:"🦑",cat:"monstruos"},{emoji:"🪱",cat:"monstruos"},{emoji:"🪲",cat:"monstruos"},{emoji:"🪳",cat:"monstruos"},
-
-/* ===== ANIMALES ===== */
-{emoji:"🐺",cat:"animales"},{emoji:"🐶",cat:"animales"},{emoji:"🐱",cat:"animales"},{emoji:"🦊",cat:"animales"},{emoji:"🐻",cat:"animales"},{emoji:"🐼",cat:"animales"},{emoji:"🐯",cat:"animales"},{emoji:"🦁",cat:"animales"},{emoji:"🐮",cat:"animales"},{emoji:"🐷",cat:"animales"},{emoji:"🐸",cat:"animales"},{emoji:"🐵",cat:"animales"},{emoji:"🐔",cat:"animales"},{emoji:"🦅",cat:"animales"},{emoji:"🦉",cat:"animales"},{emoji:"🦇",cat:"animales"},{emoji:"🐗",cat:"animales"},{emoji:"🐴",cat:"animales"},{emoji:"🦄",cat:"animales"},{emoji:"🐝",cat:"animales"},
-
-/* ===== ARMAS ===== */
-{emoji:"⚔️",cat:"armas"},{emoji:"🗡️",cat:"armas"},{emoji:"🏹",cat:"armas"},{emoji:"🛡",cat:"armas"},{emoji:"🔫",cat:"armas"},{emoji:"💣",cat:"armas"},{emoji:"🧨",cat:"armas"},{emoji:"🔪",cat:"armas"},{emoji:"⛏",cat:"armas"},{emoji:"🪓",cat:"armas"},{emoji:"🔱",cat:"armas"},{emoji:"🪃",cat:"armas"},{emoji:"🧱",cat:"armas"},{emoji:"⚙️",cat:"armas"},{emoji:"🪚",cat:"armas"},{emoji:"🔩",cat:"armas"},{emoji:"🪤",cat:"armas"},{emoji:"🧲",cat:"armas"},{emoji:"📡",cat:"armas"},{emoji:"🛰",cat:"armas"},
-
-/* ===== MAGIA / PODERES ===== */
-{emoji:"🔥",cat:"magia"},{emoji:"💧",cat:"magia"},{emoji:"🌊",cat:"magia"},{emoji:"🌪",cat:"magia"},{emoji:"❄️",cat:"magia"},{emoji:"⚡",cat:"magia"},{emoji:"✨",cat:"magia"},{emoji:"💫",cat:"magia"},{emoji:"🌟",cat:"magia"},{emoji:"⭐",cat:"magia"},{emoji:"🔮",cat:"magia"},{emoji:"🧿",cat:"magia"},{emoji:"💎",cat:"magia"},{emoji:"🌙",cat:"magia"},{emoji:"☀️",cat:"magia"},{emoji:"🌈",cat:"magia"},{emoji:"🌌",cat:"magia"},{emoji:"🪄",cat:"magia"},{emoji:"📜",cat:"magia"},{emoji:"🧙‍♂️",cat:"magia"},
-
-/* ===== OBJETOS VARIADOS PARA LLEGAR A 500+ ===== */
-{emoji:"🍎",cat:"all"},{emoji:"🍊",cat:"all"},{emoji:"🍋",cat:"all"},{emoji:"🍌",cat:"all"},{emoji:"🍉",cat:"all"},{emoji:"🍇",cat:"all"},{emoji:"🍓",cat:"all"},{emoji:"🍒",cat:"all"},{emoji:"🥝",cat:"all"},{emoji:"🍍",cat:"all"},{emoji:"🥥",cat:"all"},{emoji:"🥑",cat:"all"},{emoji:"🍆",cat:"all"},{emoji:"🥔",cat:"all"},{emoji:"🥕",cat:"all"},{emoji:"🌽",cat:"all"},{emoji:"🌶",cat:"all"},{emoji:"🥒",cat:"all"},{emoji:"🥬",cat:"all"},{emoji:"🥦",cat:"all"},
-{emoji:"🍔",cat:"all"},{emoji:"🍕",cat:"all"},{emoji:"🌭",cat:"all"},{emoji:"🍟",cat:"all"},{emoji:"🍗",cat:"all"},{emoji:"🍖",cat:"all"},{emoji:"🍤",cat:"all"},{emoji:"🍣",cat:"all"},{emoji:"🍩",cat:"all"},{emoji:"🍪",cat:"all"},{emoji:"🎂",cat:"all"},{emoji:"🍰",cat:"all"},{emoji:"🧁",cat:"all"},{emoji:"🍫",cat:"all"},{emoji:"🍿",cat:"all"},{emoji:"🥤",cat:"all"},{emoji:"🍺",cat:"all"},{emoji:"🍷",cat:"all"},{emoji:"☕",cat:"all"},{emoji:"🧃",cat:"all"},
-
-/* Nota: esta lista ahora supera los 500 elementos posibles combinados con los existentes y es segura para rendimiento */
-];
-
-/* base units with expanded stats (defaults for new properties) */
-let baseUnits=[
-{name:"Dragón anciano",emoji:"🐉",hp:320,damage:28,speed:0.7,defense:12,accuracy:85,attackSpeed:0.7,range:90,crit:10,iq:2,magicArmor:10,weapon:"🔥",ability:"splash",type:"fuego"},
-{name:"Demonio",emoji:"😈",hp:180,damage:26,speed:1.2,defense:6,accuracy:95,attackSpeed:1.3,range:25,crit:18,iq:2,magicArmor:4,weapon:"🔥",ability:"lifesteal",type:"oscuro"},
-{name:"Gólem",emoji:"🗿",hp:450,damage:20,speed:0.5,defense:18,accuracy:75,attackSpeed:0.6,range:20,crit:2,iq:1,magicArmor:12,weapon:"💥",ability:"thorns",type:"tierra"},
-{name:"Fantasma",emoji:"👻",hp:120,damage:18,speed:1.6,defense:2,accuracy:90,attackSpeed:1.4,range:30,crit:12,iq:2,magicArmor:20,weapon:"✨",ability:"phase",type:"oscuro"},
-{name:"Hidra",emoji:"🐍",hp:260,damage:14,speed:0.9,defense:7,accuracy:85,attackSpeed:2.2,range:22,crit:5,iq:1,magicArmor:3,weapon:"🐍",ability:"multiattack",type:"agua"},
-{name:"Titán",emoji:"🧌",hp:520,damage:40,speed:0.45,defense:15,accuracy:80,attackSpeed:0.5,range:28,crit:6,iq:1,magicArmor:5,weapon:"💪",ability:"knockback",type:"tierra"},
-{name:"Bruja",emoji:"🧙‍♀️",hp:140,damage:24,speed:1.1,defense:3,accuracy:92,attackSpeed:1.1,range:120,crit:14,iq:3,magicArmor:8,weapon:"✨",ability:"curse",type:"oscuro"},
-{name:"Lobo alfa",emoji:"🐺",hp:160,damage:20,speed:1.8,defense:5,accuracy:95,attackSpeed:1.5,range:18,crit:20,iq:2,magicArmor:0,weapon:"🦴",ability:"rage",type:"tierra"},
-{name:"Escorpión gigante",emoji:"🦂",hp:170,damage:15,speed:1.2,defense:6,accuracy:90,attackSpeed:1.6,range:22,crit:8,iq:1,magicArmor:0,weapon:"☠️",ability:"poison",type:"tierra"},
-{name:"Ent",emoji:"🌳",hp:380,damage:22,speed:0.6,defense:14,accuracy:80,attackSpeed:0.7,range:35,crit:4,iq:1,magicArmor:10,weapon:"🌿",ability:"regen",type:"tierra"},
-{name:"Fénix",emoji:"🔥",hp:150,damage:30,speed:1.4,defense:4,accuracy:92,attackSpeed:1.2,range:100,crit:15,iq:2,magicArmor:6,weapon:"🔥",ability:"rebirth",type:"fuego"},
-{name:"Caballero maldito",emoji:"💀",hp:240,damage:24,speed:1,defense:10,accuracy:90,attackSpeed:1,range:24,crit:10,iq:2,magicArmor:5,weapon:"⚔️",ability:"fear",type:"oscuro"},
-{name:"Mímico",emoji:"📦",hp:200,damage:35,speed:0.8,defense:8,accuracy:100,attackSpeed:0.9,range:20,crit:22,iq:1,magicArmor:2,weapon:"😬",ability:"ambush",type:"oscuro"},
-{name:"Slime rey",emoji:"🟢",hp:360,damage:12,speed:0.7,defense:12,accuracy:85,attackSpeed:1.8,range:18,crit:3,iq:1,magicArmor:0,weapon:"🟢",ability:"split",type:"agua"},
-{name:"Ángel oscuro",emoji:"😇",hp:210,damage:26,speed:1.3,defense:7,accuracy:95,attackSpeed:1.1,range:90,crit:16,iq:3,magicArmor:12,weapon:"✨",ability:"smite",type:"luz"},
-];
-
-function updateUnitButtons(){
-    let div=document.getElementById("unitButtons");
-    div.innerHTML="";
-    baseUnits.forEach((u,idx)=>{
-        let b=document.createElement("button");
-        b.className="unitBtn";
-        b.innerHTML=`
-            <div class="unitEmoji">${u.emoji}</div>
-            <div class="unitText">${u.name}</div>
-        `;
-        b.onclick=()=>{ selectedUnit=u; /* keep reference to object */ };
-        div.appendChild(b);
-    });
+function clearPixelCanvas(){
+    pctx.clearRect(0,0,pixelCanvas.width,pixelCanvas.height);
+    customSprite=null;
 }
-updateUnitButtons();
+function savePixelSprite(){
+    customSprite=pixelCanvas.toDataURL();
+    alert("Sprite guardado");
+}
+
+/* ===== UI ===== */
+function openCreator(){ creatorPanel.style.display="block"; }
+function closeCreator(){ creatorPanel.style.display="none"; }
 
 function toggleTeam(){
-    currentTeam = currentTeam === "blue" ? "red" : "blue";
-    document.getElementById("teamBtn").innerHTML =
-        (currentTeam === "blue" ? "🔵" : "🔴") + '<div class="unitText">Bando</div>';
+    currentTeam=currentTeam==="blue"?"red":"blue";
+    teamBtn.innerHTML=(currentTeam==="blue"?"🔵":"🔴")+'<div class="unitText">Bando</div>';
 }
 
-/* Unit class uses expanded stats and attack logic */
-class Unit {
-    constructor(x,y,team,data){
-        this.x = x;
-        this.y = y;
-        this.team = team;
-
-        // Stats
-        this.hp = data.hp ?? 100;
-        this.maxHp = this.hp;
-        this.damage = data.damage ?? 10;
-        this._origDamage = this.damage;
-        this.speed = data.speed ?? 1;
-        this._origSpeed = this.speed;
-        this.defense = data.defense ?? 0;
-        this._origDefense = this.defense;
-        this.accuracy = data.accuracy ?? 100;
-        this.attackSpeed = data.attackSpeed ?? 1; // attacks per second
-        this.range = data.range ?? 20;
-        this.crit = data.crit ?? 0; // percent
-        this.iq = data.iq ?? 1;
-        this.magicArmor = data.magicArmor ?? 0;
-
-        this.emoji = data.emoji ?? "❓";
-        this.weapon = data.weapon ?? "";
-        this.name = data.name ?? "Unit";
-        this.type = data.type ?? "neutral"; // <-- guarda el tipo
-
-        // ability / mana
-        this.ability = data.ability || null;
-        this.manaMax = data.manaMax ?? data.mana ?? 0;
-        this.mana = Math.min(this.manaMax, data.mana ?? this.manaMax);
-        this.abilityCooldownMax = Math.max(6, Math.round((data.abilityCooldown || 5) * 60));
-        this.abilityCooldown = 0;
-
-        this.effect = null;
-        this.effectTimer = 0;
-
-        // attack cooldown measured in frames
-        // convert attackSpeed (attacks/sec) to frames per attack (assuming ~60fps)
-        this.attackCooldown = 0;
-        this.attackCooldownMax = Math.max(6, Math.round(60 / (this.attackSpeed || 0.1)));
-        this.size = 22;
-
-        // flags & misc
-        this.rebirthed = false;
-        this.splitDone = false;
-        this.poisonTicks = 0;
-    }
-
-    findNearestEnemy(){
-        let enemies = units.filter(u => u.team !== this.team);
-        if(enemies.length === 0) return null;
-        let closest = null;
-        let minD = Infinity;
-        for(let e of enemies){
-            let d = Math.hypot(e.x - this.x, e.y - this.y);
-            if(d < minD){
-                minD = d;
-                closest = e;
-            }
-        }
-        return {enemy: closest, dist: minD};
-    }
-
-    update(){
-        if(!battleStarted) return;
-
-        // mana regen
-        if(this.manaMax > 0 && this.mana < this.manaMax) this.mana = Math.min(this.manaMax, this.mana + 0.08);
-        // ability cooldown decrement
-        if(this.abilityCooldown > 0) this.abilityCooldown--;
-        // effect timer
-        if(this.effectTimer > 0){
-            this.effectTimer--;
-            if(this.effectTimer === 0){
-                // revert temporary buffs
-                if(this.effect === 'shield'){
-                    this.defense = this._origDefense;
-                }
-                if(this.effect === 'rage'){
-                    this.damage = this._origDamage;
-                    this.speed = this._origSpeed;
-                }
-                this.effect = null;
-            }
-        }
-
-        // poison ticks
-        if(this.poisonTicks && this.poisonTicks > 0){
-            this.hp -= 0.12; // tick damage
-            this.poisonTicks--;
-        }
-
-        let found = this.findNearestEnemy();
-        if(!found || !found.enemy) return;
-        let enemy = found.enemy;
-        let dist = found.dist;
-
-        // If outside range, move toward enemy (movement reduced by iq maybe)
-        if(dist > this.range){
-            let dx = enemy.x - this.x;
-            let dy = enemy.y - this.y;
-            let m = Math.hypot(dx,dy) || 1;
-            this.x += (dx/m) * this.speed;
-            this.y += (dy/m) * this.speed;
-        } else {
-            // in range -> attempt attack if cooldown ready
-            if(this.attackCooldown <= 0){
-                // Accuracy check
-                if(Math.random()*100 <= this.accuracy){
-                    // Damage calc: base = attacker's damage - defender's defense
-                    let baseDamage = this.damage - (enemy.defense ?? 0);
-                    if(baseDamage < 1) baseDamage = 1;
-
-                    // Critical
-                    if(Math.random()*100 < this.crit){
-                        baseDamage *= 1.5;
-                    }
-
-                    // Apply defender's magicArmor (flat reduction)
-                    baseDamage -= (enemy.magicArmor ?? 0);
-                    if(baseDamage < 0) baseDamage = 0;
-
-                    /* ===== BONUS ELEMENTAL ===== */
-                    let atkType = this.type || "neutral";
-                    let defType = enemy.type || "neutral";
-                    if(elementBonus[atkType] && elementBonus[atkType][defType]){
-                        baseDamage *= elementBonus[atkType][defType];
-                    }
-
-                    // Final application (ensure at least fractional damage)
-                    enemy.hp -= baseDamage;
-
-                    /* ===== HABILIDADES PASIVAS / AL GOLPEAR ===== */
-                    if(this.ability){
-                        // Splash damage (dragón)
-                        if(this.ability === "splash"){
-                            units.forEach(u=>{
-                                if(u.team !== this.team && u !== enemy){
-                                    let d = Math.hypot(u.x - enemy.x, u.y - enemy.y);
-                                    if(d < 40) u.hp -= baseDamage * 0.4;
-                                }
-                            });
-                        }
-
-                        // Robo de vida (demonio)
-                        if(this.ability === "lifesteal"){
-                            this.hp += baseDamage * 0.35;
-                            if(this.hp > this.maxHp) this.hp = this.maxHp;
-                        }
-
-                        // Espinas (gólem)
-                        if(this.ability === "thorns"){
-                            enemy.hp -= this.damage * 0.25;
-                        }
-
-                        // Multiataque (hidra)
-                        if(this.ability === "multiattack"){
-                            if(Math.random() < 0.35){
-                                enemy.hp -= baseDamage * 0.8;
-                            }
-                        }
-
-                        // Golpe que empuja (titán)
-                        if(this.ability === "knockback"){
-                            let dx = enemy.x - this.x;
-                            let dy = enemy.y - this.y;
-                            let m = Math.hypot(dx,dy)||1;
-                            enemy.x += (dx/m)*18;
-                            enemy.y += (dy/m)*18;
-                        }
-
-                        // Maldición (bruja)
-                        if(this.ability === "curse"){
-                            enemy.damage *= 0.85;
-                        }
-
-                        // Furia (lobo) -> pasa a efecto temporal si HP bajo
-                        if(this.ability === "rage"){
-                            if(this.hp < this.maxHp*0.5 && this.effect !== 'rage'){
-                                this.effect='rage';
-                                this.effectTimer=180;
-                                this.damage *= 1.25;
-                                this.speed *= 1.15;
-                            }
-                        }
-
-                        // Veneno (escorpión)
-                        if(this.ability === "poison"){
-                            enemy.poisonTicks = Math.max(enemy.poisonTicks, 120);
-                        }
-
-                        // Regeneración (ent) -> curación al impactar
-                        if(this.ability === "regen"){
-                            this.hp += 0.45;
-                            if(this.hp > this.maxHp) this.hp = this.maxHp;
-                        }
-
-                        // Renacer (fénix) handled on death
-
-                        // Miedo (caballero maldito)
-                        if(this.ability === "fear"){
-                            enemy.speed *= 0.92;
-                        }
-
-                        // Emboscada (mímico)
-                        if(this.ability === "ambush"){
-                            if(Math.random() < 0.25){
-                                enemy.hp -= baseDamage;
-                            }
-                        }
-
-                        // División (slime)
-                        if(this.ability === "split"){
-                            if(this.hp < this.maxHp*0.4 && !this.splitDone){
-                                this.splitDone=true;
-                                units.push(new Unit(this.x+10,this.y,this.team,{
-                                    name:this.name+" (hijo)", emoji:this.emoji, hp:this.maxHp*0.4, damage:this.damage*0.6, speed:this.speed, defense:this.defense, accuracy:this.accuracy, attackSpeed:this.attackSpeed, range:this.range, crit:this.crit, iq:this.iq, magicArmor:this.magicArmor, weapon:this.weapon, type:this.type
-                                }));
-                            }
-                        }
-
-                        // Castigo divino (ángel)
-                        if(this.ability === "smite"){
-                            if(Math.random() < 0.15){
-                                enemy.hp -= baseDamage * 2;
-                            }
-                        }
-
-                    }
-                }
-                // set cooldown based on attackSpeed (frames)
-                this.attackCooldown = Math.max(6, Math.round(60 / (this.attackSpeed || 0.1)));
-            }
-        }
-
-        // HABILIDADES ACTIVAS (automáticas) - se activan si hay mana y cooldown listo
-        if(this.ability && this.mana >= 10 && this.abilityCooldown <= 0){
-
-            // Fireball (zona)
-            if(this.ability === "fireball"){
-                units.forEach(u=>{
-                    if(u.team !== this.team){
-                        let d=Math.hypot(u.x-this.x,u.y-this.y);
-                        if(d<120) u.hp-=this.damage*1.2;
-                    }
-                });
-                this.effect="fire";
-                this.mana-=30;
-                this.abilityCooldown=this.abilityCooldownMax;
-            }
-
-            // Heal
-            if(this.ability === "heal"){
-                this.hp+=this.maxHp*0.35;
-                if(this.hp>this.maxHp) this.hp=this.maxHp;
-                this.effect="heal";
-                this.mana-=25;
-                this.abilityCooldown=this.abilityCooldownMax;
-            }
-
-            // Shield
-            if(this.ability === "shield"){
-                this.defense += 6;
-                this.effectTimer = 180;
-                this.effect = "shield";
-                this.mana -= 20;
-                this.abilityCooldown = this.abilityCooldownMax;
-            }
-
-            // Poison aura
-            if(this.ability === "poisonAura"){
-                units.forEach(u=>{
-                    if(u.team!==this.team){
-                        let d=Math.hypot(u.x-this.x,u.y-this.y);
-                        if(d<60) u.poisonTicks = Math.max(u.poisonTicks, 80);
-                    }
-                });
-                this.effect="poison";
-                this.mana-=10;
-                this.abilityCooldown=60;
-            }
-
-            // Rage (active)
-            if(this.ability === "rage"){
-                this.damage *= 1.25;
-                this.speed *= 1.15;
-                this.effectTimer=180;
-                this.effect="rage";
-                this.mana-=20;
-                this.abilityCooldown=this.abilityCooldownMax;
-            }
-
-            // Blink
-            if(this.ability === "blink"){
-                this.x += (Math.random()*120-60);
-                this.y += (Math.random()*120-60);
-                this.effect="blink";
-                this.mana-=15;
-                this.abilityCooldown=this.abilityCooldownMax;
-            }
-
-            // Summon copy
-            if(this.ability === "summon"){
-                units.push(new Unit(this.x+20,this.y,this.team,{
-                    name:this.name+" (clone)", emoji:this.emoji, hp:this.maxHp*0.6, damage:this.damage*0.8, speed:this.speed*0.9, defense:this.defense, accuracy:this.accuracy, attackSpeed:this.attackSpeed, range:this.range, crit:this.crit, iq:this.iq, magicArmor:this.magicArmor, weapon:this.weapon, type:this.type
-                }));
-                this.effect="summon";
-                this.mana-=40;
-                this.abilityCooldown=this.abilityCooldownMax;
-            }
-
-        }
-
-        // death/rebirth check
-        if(this.hp <= 0){
-            if(this.ability === "rebirth" && !this.rebirthed){
-                this.hp = this.maxHp * 0.6;
-                this.rebirthed = true;
-            }
-        }
-
-        if(this.attackCooldown > 0) this.attackCooldown--;
-    }
-
-    draw(){
-        // effects visual
-        if(this.effect === "fire"){
-            ctx.fillStyle = "rgba(255,120,20,0.12)";
-            ctx.beginPath();
-            ctx.arc(this.x,this.y,18,0,Math.PI*2);
-            ctx.fill();
-        }
-        if(this.effect === "heal"){
-            ctx.fillStyle = "rgba(120,255,120,0.12)";
-            ctx.beginPath();
-            ctx.arc(this.x,this.y,16,0,Math.PI*2);
-            ctx.fill();
-        }
-        if(this.effect === "shield"){
-            ctx.strokeStyle = "rgba(80,220,255,0.9)";
-            ctx.beginPath();
-            ctx.arc(this.x,this.y,20,0,Math.PI*2);
-            ctx.stroke();
-        }
-        if(this.effect === "poison"){
-            ctx.strokeStyle = "rgba(160,80,200,0.9)";
-            ctx.beginPath();
-            ctx.arc(this.x,this.y,22,0,Math.PI*2);
-            ctx.stroke();
-        }
-
-        // glow depending on team
-        ctx.save();
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = this.team === "blue" ? "cyan" : "red";
-        ctx.font = this.size + "px Arial";
-        ctx.textAlign = "center";
-        // draw emoji + weapon side-by-side
-        ctx.fillText(this.emoji + this.weapon, this.x, this.y);
-        ctx.restore();
-
-        // HP bar
-        let hpRatio = Math.max(0, this.hp) / Math.max(1, this.maxHp);
-        ctx.fillStyle = "#333";
-        ctx.fillRect(this.x - 22, this.y - 30, 44, 6);
-        ctx.fillStyle = hpRatio>0.5?"green":(hpRatio>0.2?"orange":"red");
-        ctx.fillRect(this.x - 22, this.y - 30, 44 * hpRatio, 6);
-
-        // mana bar
-        if(this.manaMax>0){
-            ctx.fillStyle = "#113";
-            ctx.fillRect(this.x-22,this.y-22,44,4);
-            ctx.fillStyle = "cyan";
-            ctx.fillRect(this.x-22,this.y-22,44*(this.mana/this.manaMax),4);
-        }
-
-        // cooldown visual overlay (on top of HP bar)
-        if(this.ability && this.abilityCooldown > 0){
-            let pct = this.abilityCooldown/this.abilityCooldownMax;
-            ctx.fillStyle = "rgba(0,0,0,0.45)";
-            ctx.fillRect(this.x-22,this.y-30,44*pct,6);
-        }
-
-        // Small stats above or below
-        ctx.fillStyle = "white";
-        ctx.font = "10px Arial";
-        ctx.fillText(this.name, this.x, this.y + 26);
-
-        // show element type
-        ctx.fillStyle = "#aaa";
-        ctx.font = "9px Arial";
-        ctx.fillText(this.type, this.x, this.y + 36);
-
-        // ability icon
-        if(this.ability){
-            const map = {
-                fireball: '🔥', heal:'💚', shield:'🛡', poisonAura:'☠️', rage:'💢', blink:'✨', summon:'👥', splash:'💥', lifesteal:'❤️', thorns:'🌵', multiattack:'🌀', knockback:'↪️', curse:'🔮', poison:'☠️', regen:'🌿', rebirth:'🌟', fear:'😱', ambush:'🎯', split:'🔀', smite:'⚡'
-            };
-            let icon = map[this.ability] || '✨';
-            ctx.font = "11px Arial";
-            ctx.fillStyle = "yellow";
-            ctx.fillText(icon, this.x, this.y - 36);
-        }
-    }
+function createCustomUnit(){
+    const u={
+        name:unitName.value||"Custom",
+        emoji:emojiInput.value||"😀",
+        sprite:customSprite||null,
+        hp:+hpInput.value,
+        damage:+damageInput.value,
+        speed:+speedInput.value
+    };
+    baseUnits.push(u);
+    updateUnitButtons();
 }
 
-/* canvas placement */
-canvas.onclick = function(e){
-    if(!selectedUnit || battleStarted) return;
+function updateUnitButtons(){
+    unitButtons.innerHTML="";
+    baseUnits.forEach(u=>{
+        let b=document.createElement("button");
+        b.className="unitBtn";
+        b.innerHTML=`<div class="unitEmoji">${u.emoji}</div>
+                     <div class="unitText">${u.name}</div>`;
+        b.onclick=()=>selectedUnit=u;
+        unitButtons.appendChild(b);
+    });
+}
 
-    const rect = canvas.getBoundingClientRect();
+/* ===== UNIT CLASS ===== */
+class Unit{
+constructor(x,y,team,data){
+    Object.assign(this,data);
+    this.x=x;
+    this.y=y;
+    this.team=team;
+    this.maxHp=this.hp;
+    this.cool=0;
+}
 
-    // corregir escala real del canvas
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+update(){
+    if(!battleStarted) return;
+    let enemy=units.find(u=>u.team!==this.team);
+    if(!enemy) return;
 
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
+    let dx=enemy.x-this.x;
+    let dy=enemy.y-this.y;
+    let d=Math.hypot(dx,dy);
 
-    units.push(new Unit(x, y, currentTeam, selectedUnit));
+    if(d>30){
+        this.x+=dx/d*this.speed;
+        this.y+=dy/d*this.speed;
+    }else if(this.cool<=0){
+        enemy.hp-=this.damage;
+        this.cool=40;
+    }
+    if(this.cool>0) this.cool--;
+}
+
+draw(){
+    ctx.save();
+    ctx.textAlign="center";
+    ctx.font="22px Arial";
+
+    if(this.sprite){
+        if(!this.img){
+            this.img=new Image();
+            this.img.src=this.sprite;
+        }
+        ctx.drawImage(this.img,this.x-18,this.y-18,36,36);
+    }else{
+        ctx.fillText(this.emoji,this.x,this.y);
+    }
+
+    ctx.restore();
+
+    let r=this.hp/this.maxHp;
+    ctx.fillStyle="#333";
+    ctx.fillRect(this.x-20,this.y-30,40,5);
+    ctx.fillStyle="lime";
+    ctx.fillRect(this.x-20,this.y-30,40*r,5);
+}
+}
+
+/* ===== CANVAS CLICK ===== */
+canvas.onclick=e=>{
+    if(!selectedUnit||battleStarted) return;
+    const r=canvas.getBoundingClientRect();
+    units.push(new Unit(
+        e.clientX-r.left,
+        e.clientY-r.top,
+        currentTeam,
+        selectedUnit
+    ));
 };
 
-function gameLoop(){
+function clearUnits(){ units=[]; battleStarted=false; }
+function startBattle(){ battleStarted=true; }
+
+/* ===== LOOP ===== */
+function loop(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    // update and draw
-    units.forEach(u => u.update());
-    units = units.filter(u => u.hp > 0);
-    units.forEach(u => u.draw());
-    requestAnimationFrame(gameLoop);
+    units.forEach(u=>u.update());
+    units=units.filter(u=>u.hp>0);
+    units.forEach(u=>u.draw());
+    requestAnimationFrame(loop);
 }
-gameLoop();
-
-function startBattle(){
-    battleStarted = true;
-    closeCreator();
-}
-
-function clearUnits(){
-    units = [];
-    battleStarted = false;
-}
-
-/* Creator open/close & emoji grid */
-function openCreator(){
-    if(battleStarted) return;
-    document.getElementById("creatorPanel").style.display = "block";
-    loadEmojiGrid();
-}
-
-function closeCreator(){
-    document.getElementById("creatorPanel").style.display = "none";
-}
-
-function loadEmojiGrid(){
-    const grid = document.getElementById("emojiGrid");
-    grid.innerHTML = "";
-    const search = document.getElementById("searchEmoji").value.toLowerCase();
-    const category = document.getElementById("categoryFilter").value;
-
-    emojiData.forEach(e=>{
-        // category filter: if selected "all" allow all
-        if(category !== "all" && e.cat !== category) return;
-        // search: check emoji string (simple)
-        if(search && !e.emoji.includes(search)) return;
-
-        const div = document.createElement("div");
-        div.className = "emojiOption";
-        div.textContent = e.emoji;
-        if(e.emoji === selectedEmoji) div.classList.add("emojiSelected");
-        div.onclick = ()=>{
-            selectedEmoji = e.emoji;
-            loadEmojiGrid();
-        };
-        div.ondblclick = ()=>{
-            // toggle favorite
-            if(favorites.includes(e.emoji)) favorites = favorites.filter(f=>f!==e.emoji);
-            else favorites.push(e.emoji);
-            loadEmojiGrid();
-        };
-        grid.appendChild(div);
-    });
-}
-
-/* random emoji */
-function randomEmoji(){
-    let r = emojiData[Math.floor(Math.random() * emojiData.length)];
-    selectedEmoji = r.emoji;
-    loadEmojiGrid();
-}
-
-/* create custom unit (reads all new stats) */
-function createCustomUnit(){
-    if(battleStarted) return;
-
-    const name = document.getElementById("unitName").value || "Custom";
-    const hp = parseFloat(document.getElementById("hpInput").value) || 100;
-    const damage = parseFloat(document.getElementById("damageInput").value) || 10;
-    const speed = parseFloat(document.getElementById("speedInput").value) || 1;
-    const defense = parseFloat(document.getElementById("defenseInput").value) || 0;
-    const accuracy = parseFloat(document.getElementById("accuracyInput").value);
-    const attackSpeed = parseFloat(document.getElementById("attackSpeedInput").value) || 1;
-    const range = parseFloat(document.getElementById("rangeInput").value) || 20;
-    const crit = parseFloat(document.getElementById("critInput").value) || 0;
-    const iq = parseFloat(document.getElementById("iqInput").value) || 1;
-    const magicArmor = parseFloat(document.getElementById("magicArmorInput").value) || 0;
-
-    // NUEVOS SELECTORES
-    const unitType = document.getElementById("typeSelect").value || "neutral";
-    const weapon = document.getElementById("weaponSelect").value || "";
-
-    // Habilidad / mana / cooldown
-    const ability = document.getElementById("abilitySelect").value || "";
-    const mana = parseFloat(document.getElementById("manaInput").value) || 0;
-    const abilityCd = parseFloat(document.getElementById("cooldownInput").value) || 5;
-
-    // push into templates (baseUnits)
-    baseUnits.push({
-        name: name,
-        emoji: selectedEmoji,
-        hp: hp,
-        damage: damage,
-        speed: speed,
-        defense: defense,
-        accuracy: isNaN(accuracy) ? 90 : accuracy,
-        attackSpeed: attackSpeed,
-        range: range,
-        crit: crit,
-        iq: iq,
-        magicArmor: magicArmor,
-        weapon: weapon,
-        type: unitType,
-        ability: ability,
-        mana: mana,
-        abilityCooldown: abilityCd
-    });
-
-    updateUnitButtons();
-    closeCreator();
-}
-
-/* wire up creator controls */
-document.getElementById("categoryFilter").onchange = loadEmojiGrid;
-document.getElementById("searchEmoji").oninput = loadEmojiGrid;
-
-/* initialize */
-loadEmojiGrid();
-updateUnitButtons();
-
+loop();
 </script>
-
 </body>
 </html>
-
-<!-- ============================= -->
-<!-- 🔥 EXPANSIÓN: MUCHAS ARMAS, EMOJIS Y HABILIDADES -->
-<!-- Este bloque es ADITIVO y no rompe tu código existente -->
-<script>
-
-/* ================= EMOJIS EXTRA ================= */
-const EXTRA_EMOJIS = [
-"🧙","🧝","🧛","🧟","🧞","🧜","🧚","🥷","🦸","🦹",
-"🐉","🦖","🦂","🦅","🦇","🐺","🐗","🦍","🐘","🦬",
-"🤖","👾","💀","👻","☠","👺","👹","👽","🛡","⚔",
-"🔥","🌪","🌊","🌋","🧊","🌑","🌞","⭐","⚡","💎"
-];
-
-/* ================= ARMAS EXTRA ================= */
-const EXTRA_WEAPONS = {
-"Daga":        {damage:6,  speed:1.4, range:18},
-"Espada":      {damage:10, speed:1.1, range:20},
-"Lanza":       {damage:12, speed:0.95,range:28},
-"Martillo":    {damage:16, speed:0.8, range:18},
-"Hacha":       {damage:14, speed:0.9, range:20},
-"Bastón":      {damage:8,  speed:1.0, range:30},
-"Arco":        {damage:11, speed:1.0, range:120},
-"Ballesta":    {damage:15, speed:0.75,range:140},
-"Cañón":       {damage:26, speed:0.45,range:180},
-"Guadaña":     {damage:18, speed:0.85,range:26},
-"Tridente":    {damage:17, speed:0.9, range:30},
-"Katana":      {damage:13, speed:1.3, range:22},
-"Látigo":      {damage:9,  speed:1.2, range:36},
-"Orbe mágico": {damage:20, speed:0.7, range:160},
-"Garras":      {damage:12, speed:1.5, range:16}
-};
-
-/* ================= HABILIDADES EXTRA ================= */
-const EXTRA_ABILITIES = [
-"meteor","chain","freeze","vampireAura","storm",
-"earthquake","timeSlow","holyLight","shadowClone",
-"laser","bomb","totem","windDash","iceWall"
-];
-
-/* ===== INYECTAR OPCIONES EN EL CREADOR ===== */
-document.addEventListener("DOMContentLoaded",()=>{
-
-    const emojiSel = document.getElementById("emojiSelect");
-    if(emojiSel){
-        EXTRA_EMOJIS.forEach(e=>{
-            const o=document.createElement("option");
-            o.value=e; o.textContent=e;
-            emojiSel.appendChild(o);
-        });
-    }
-
-    const weaponSel = document.getElementById("weaponSelect");
-    if(weaponSel){
-        Object.keys(EXTRA_WEAPONS).forEach(w=>{
-            const o=document.createElement("option");
-            o.value=w; o.textContent=w;
-            weaponSel.appendChild(o);
-        });
-    }
-
-    const abilitySel = document.getElementById("abilitySelect");
-    if(abilitySel){
-        EXTRA_ABILITIES.forEach(a=>{
-            const o=document.createElement("option");
-            o.value=a; o.textContent=a;
-            abilitySel.appendChild(o);
-        });
-    }
-});
-
-/* ===== PARCHE: aplicar stats de armas al crear unidad ===== */
-if(typeof createCustomUnit === "function"){
-    const __oldCreate = createCustomUnit;
-    window.createCustomUnit = function(){
-        __oldCreate();
-        try{
-            const weapon = document.getElementById("weaponSelect")?.value;
-            const last = window.baseUnits?.[window.baseUnits.length-1];
-            if(last && EXTRA_WEAPONS[weapon]){
-                const w=EXTRA_WEAPONS[weapon];
-                last.damage += w.damage;
-                last.speed  *= w.speed;
-                last.range   = Math.max(last.range||0, w.range);
-            }
-        }catch(e){}
-    }
-}
-
-/* ===== PARCHE: habilidades extra en runtime ===== */
-function handleExtraAbilities(u, units){
-    if(!u.ability || u.mana<20 || u.abilityCooldown>0) return;
-
-    switch(u.ability){
-
-        case "meteor":
-            units.forEach(t=>{
-                if(t.team!==u.team){
-                    const d=Math.hypot(t.x-u.x,t.y-u.y);
-                    if(d<160) t.hp-=u.damage*1.8;
-                }
-            });
-            u.effect="fire"; u.mana-=40; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "chain":
-            let hits=0;
-            units.forEach(t=>{
-                if(t.team!==u.team && hits<3){
-                    t.hp-=u.damage*1.1; hits++;
-                }
-            });
-            u.effect="shock"; u.mana-=25; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "freeze":
-            units.forEach(t=>{
-                if(t.team!==u.team){
-                    const d=Math.hypot(t.x-u.x,t.y-u.y);
-                    if(d<90) t.speed*=0.5;
-                }
-            });
-            u.effect="ice"; u.mana-=30; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "vampireAura":
-            units.forEach(t=>{
-                if(t.team!==u.team){
-                    const d=Math.hypot(t.x-u.x,t.y-u.y);
-                    if(d<70){
-                        t.hp-=0.4;
-                        u.hp+=0.4;
-                    }
-                }
-            });
-            u.effect="dark"; u.mana-=10; u.abilityCooldown=40; break;
-
-        case "storm":
-            units.forEach(t=>{
-                if(t.team!==u.team){
-                    const dx=t.x-u.x, dy=t.y-u.y;
-                    const m=Math.hypot(dx,dy)||1;
-                    t.x+=(dx/m)*8; t.y+=(dy/m)*8;
-                }
-            });
-            u.effect="wind"; u.mana-=22; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "earthquake":
-            units.forEach(t=>{
-                if(t.team!==u.team){
-                    const d=Math.hypot(t.x-u.x,t.y-u.y);
-                    if(d<120) t.hp-=u.damage*1.3;
-                }
-            });
-            u.effect="dust"; u.mana-=35; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "timeSlow":
-            units.forEach(t=>{ if(t.team!==u.team) t.speed*=0.7; });
-            u.effect="time"; u.mana-=28; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "holyLight":
-            units.forEach(t=>{
-                if(t.team===u.team){
-                    const d=Math.hypot(t.x-u.x,t.y-u.y);
-                    if(d<110) t.hp+=0.8;
-                }
-            });
-            u.effect="heal"; u.mana-=26; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "shadowClone":
-            if(typeof Unit==="function"){
-                units.push(new Unit(u.x+Math.random()*30,u.y,u.team,u));
-            }
-            u.effect="dark"; u.mana-=45; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "laser":
-            units.forEach(t=>{ if(t.team!==u.team) t.hp-=u.damage*0.9; });
-            u.effect="laser"; u.mana-=24; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "bomb":
-            units.forEach(t=>{
-                if(t.team!==u.team){
-                    const d=Math.hypot(t.x-u.x,t.y-u.y);
-                    if(d<70) t.hp-=u.damage*1.6;
-                }
-            });
-            u.effect="fire"; u.mana-=32; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "totem":
-            units.forEach(t=>{ if(t.team===u.team) t.damage*=1.05; });
-            u.effect="buff"; u.mana-=20; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "windDash":
-            u.x+=Math.random()*140-70;
-            u.y+=Math.random()*140-70;
-            u.effect="wind"; u.mana-=18; u.abilityCooldown=u.abilityCooldownMax; break;
-
-        case "iceWall":
-            units.forEach(t=>{
-                if(t.team!==u.team){
-                    const d=Math.hypot(t.x-u.x,t.y-u.y);
-                    if(d<60) t.speed*=0.4;
-                }
-            });
-            u.effect="ice"; u.mana-=26; u.abilityCooldown=u.abilityCooldownMax; break;
-    }
-}
-
-/* envolver update para ejecutar habilidades extra */
-if(typeof Unit==="function" && Unit.prototype.update){
-    const __oldUpdate = Unit.prototype.update;
-    Unit.prototype.update = function(){
-        __oldUpdate.apply(this,arguments);
-        try{ handleExtraAbilities(this, window.units||arguments[0]||[]); }catch(e){}
-    }
-}
-
-</script>
-<!-- ============================= -->
-
