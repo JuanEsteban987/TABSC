@@ -2,37 +2,39 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>TABS RPG - Pixel Art Final</title>
+    <title>TABS RPG Ultra - Stats Avanzadas</title>
     <style>
         body { margin: 0; background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        
         #leftPanel { width: 320px; background: #151515; padding: 15px; box-sizing: border-box; border-right: 2px solid #333; overflow-y: auto; }
         .section-title { font-size: 11px; text-transform: uppercase; color: #007bff; margin: 15px 0 10px 0; border-bottom: 1px solid #333; letter-spacing: 1px; font-weight: bold; }
-        
         .buttonGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .unitBtn, .controlBtn { background: #222; border: 1px solid #444; border-radius: 8px; cursor: pointer; padding: 5px; height: 65px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: 0.2s; }
+        .unitBtn, .controlBtn { background: #222; border: 1px solid #444; border-radius: 8px; cursor: pointer; padding: 5px; height: 65px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: 0.2s; position: relative; }
         .unitBtn.selected { border-color: #00ff00; background: #1a2e1a; }
-
-        #gameContainer { flex: 1; position: relative; background: #111; }
+        #gameContainer { flex: 1; position: relative; background: #111; cursor: crosshair; }
         canvas#game { display: block; width: 100%; height: 100%; }
-
-        #creatorPanel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1b1b1b; padding: 20px; display: none; width: 850px; border: 2px solid #444; max-height: 90vh; overflow-y: auto; z-index: 100; border-radius: 12px; box-shadow: 0 0 50px black; color: white; }
         
-        .editor-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
-        .statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #222; padding: 12px; border-radius: 8px; }
+        /* Modales */
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1b1b1b; padding: 20px; display: none; border: 2px solid #444; z-index: 100; border-radius: 12px; box-shadow: 0 0 50px black; color: white; }
+        #creatorPanel { width: 900px; max-height: 95vh; overflow-y: auto; }
+        .editor-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
         
-        .skill-item { background: #2a2a2a; padding: 10px; border-radius: 6px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; font-size: 12px; border: 1px solid #333; color: white; }
-        .hidden { display: none !important; }
+        /* Formulario de Stats en 2 columnas */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        label { font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: bold; display: block; margin-top: 5px; }
+        input, select { background: #111; border: 1px solid #444; color: #0f0; padding: 6px; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 13px; }
         
-        label { font-size: 10px; color: #ffffff; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
-        input[type="number"], input[type="text"] { background: #111; border: 1px solid #444; color: #0f0; padding: 5px; border-radius: 4px; width: 100%; box-sizing: border-box; }
-
-        .paint-tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin: 10px 0; }
-        .tool-btn { background: #333; border: 1px solid #555; color: white; padding: 8px; cursor: pointer; border-radius: 4px; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+        .sketch-gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; max-height: 100px; overflow-y: auto; background: #111; padding: 10px; border: 1px solid #333; margin-top: 10px; }
+        .sketch-item { border: 1px solid #444; cursor: pointer; background: #222; image-rendering: pixelated; width: 100%; }
+        .paint-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 10px 0; }
+        .tool-btn { background: #333; border: 1px solid #555; color: white; padding: 8px; cursor: pointer; border-radius: 4px; font-size: 12px; }
         .tool-btn.active { background: #007bff; border-color: #fff; }
-
-        #pixelCanvas { border: 2px solid #555; background: #eee; image-rendering: pixelated; display: block; margin: 10px auto; cursor: crosshair; }
-        .mainAction { background: #28a745; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px; }
+        #pixelCanvas { border: 2px solid #555; background: #eee; image-rendering: pixelated; display: block; margin: 0 auto; }
+        .mainAction { background: #28a745; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
+        
+        /* Menú Contextual */
+        #contextMenu { display: none; position: absolute; background: #1b1b1b; border: 1px solid #444; border-radius: 6px; z-index: 2000; min-width: 170px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .context-item { padding: 10px 15px; font-size: 13px; cursor: pointer; color: #ddd; border-bottom: 1px solid #333; }
+        .context-item:hover { background: #007bff; color: white; }
     </style>
 </head>
 <body>
@@ -40,213 +42,136 @@
 <div id="leftPanel">
     <div class="section-title">Ejército</div>
     <div id="unitButtons" class="buttonGrid"></div>
-    <div class="section-title">Controles</div>
+    <div class="section-title">Controles Globales</div>
     <div class="buttonGrid">
         <button class="controlBtn" onclick="toggleTeam()" id="teamBtn">🔵<small>Bando</small></button>
         <button class="controlBtn" onclick="startBattle()" style="color:#0f0">▶<small>Play</small></button>
         <button class="controlBtn" onclick="clearUnits()">🗑<small>Reset</small></button>
         <button class="controlBtn" onclick="openCreator()" style="color:#f0f">➕<small>Editor</small></button>
+        <button class="controlBtn" onclick="openMapEditor()" style="color:#ffae00">🗺️<small>Mapa</small></button>
+        <button class="controlBtn" onclick="importarUnidadGlobal()">📥<small>Import</small></button>
     </div>
 </div>
 
 <div id="gameContainer"><canvas id="game"></canvas></div>
 
-<div id="creatorPanel">
-    <h2 style="margin:0 0 15px 0; text-align:center; color:#007bff">Editor de Tropas Pro</h2>
-    
+<div id="contextMenu">
+    <div class="context-item" id="ctxEdit" onclick="cargarEnEditor()">✏️ Editar en Creador</div>
+    <div class="context-item" onclick="exportarObjetivo()">📤 Exportar Código</div>
+    <div class="context-item" style="color:#ff4444" onclick="borrarObjetivo()">🗑️ Borrar</div>
+</div>
+
+<div id="creatorPanel" class="modal">
+    <h2 id="editorTitle" style="margin:0; text-align:center; color:#007bff">Editor de Tropas</h2>
     <div class="editor-layout">
         <div>
-            <label>Lienzo (Ctrl+Z para Deshacer)</label>
             <canvas id="pixelCanvas" width="240" height="240"></canvas>
-            
             <div class="paint-tools">
-                <button class="tool-btn active" onclick="setTool('pen')" title="Lápiz">✏️</button>
-                <button class="tool-btn" onclick="setTool('fill')" title="Cubo">🪣</button>
-                <button class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧽</button>
-                <button class="tool-btn" onclick="undo()" title="Deshacer">↩️</button>
-                <button class="tool-btn" onclick="setTool('line')" title="Línea">📏</button>
-                <button class="tool-btn" onclick="setTool('rect')" title="Rectángulo">⬜</button>
-                <button class="tool-btn" onclick="setTool('circle')" title="Círculo">⭕</button>
-                <button class="tool-btn" onclick="modifyColor(1.2)" title="Aclarar">💡</button>
-                <button class="tool-btn" onclick="modifyColor(0.8)" title="Oscurecer">🌙</button>
-                <input type="color" id="pixelColor" value="#ff0000" style="width:100%; height:35px; border:none; cursor:pointer;">
+                <button class="tool-btn active" onclick="setTool('pen')">✏️</button>
+                <button class="tool-btn" onclick="setTool('eraser')">🧽</button>
+                <button class="tool-btn" onclick="resetGrid()">🆕</button>
+                <button class="tool-btn" onclick="saveSketch()" style="background:#6f42c1">💾</button>
+                <input type="color" id="pixelColor" value="#ff0000" style="grid-column: span 4; height:35px; margin-top:5px; border:none; cursor:pointer;">
             </div>
-
-            <select id="gridRes" onchange="resetGrid()" style="width:100%; background:#222; color:white; border:1px solid #444; padding:5px; border-radius:4px;">
-                <option value="16">16x16</option>
-                <option value="32">32x32</option>
-            </select>
+            <div class="section-title">Bocetos</div>
+            <div id="sketchGallery" class="sketch-gallery"></div>
         </div>
-
         <div>
-            <div class="section-title" style="margin-top:0">Habilidades Especiales</div>
-            <div class="skill-item"><input type="checkbox" id="skillVamp" onchange="toggleVampField()"> <span>🧛 Vínculo de Sangre</span></div>
-            <div id="vampExtra" class="hidden" style="padding-left:30px; margin-bottom:10px;"><label>Robo %</label><input id="vampVal" type="number" value="20"></div>
-            <div class="skill-item"><input type="checkbox" id="skillExplode"> <span>💥 Explosión al Morir</span></div>
-            <div class="skill-item"><input type="checkbox" id="skillThorns"> <span>🛡️ Escudo de Espinas</span></div>
-            <div class="skill-item"><input type="checkbox" id="skillAura"> <span>☣️ Aura Tóxica</span></div>
+            <label>Nombre de la Unidad</label>
+            <input id="name" value="Guerrero">
+            
+            <label>Clase</label>
+            <select id="unitType" onchange="adaptStats()">
+                <option value="melee">⚔️ Cuerpo a Cuerpo</option>
+                <option value="range">🏹 Tropa de Rango</option>
+                <option value="structure">🏰 Estructura</option>
+                <option value="turret">🛰️ Torreta</option>
+            </select>
 
-            <div class="section-title">Estadísticas</div>
-            <div class="statsGrid">
-                <div><label>Nombre</label><input id="name" value="Guerrero"></div>
-                <div><label>❤️ Vida</label><input id="hp" type="number" value="100"></div>
-                <div><label>⚔️ Ataque</label><input id="atk" type="number" value="10"></div>
-                <div><label>🛡️ Defensa</label><input id="def" type="number" value="2"></div>
-                <div><label>🏃 Vel.</label><input id="spd" type="number" value="1.5" step="0.1"></div>
-                <div><label>🎯 Rango</label><input id="rng" type="number" value="40"></div>
+            <div class="stats-grid">
+                <div>
+                    <label>❤️ Vida Máxima</label><input id="hp" type="number" value="100">
+                    <label>⚔️ Daño Base</label><input id="atk" type="number" value="15">
+                    <label>🛡️ Armadura</label><input id="def" type="number" value="0">
+                    <label>🏃 Velocidad</label><input id="spd" type="number" value="1.2" step="0.1">
+                </div>
+                <div>
+                    <label>🎯 Rango Ataque</label><input id="rng" type="number" value="40">
+                    <label>⚡ Cadencia (Cooldown)</label><input id="rate" type="number" value="60">
+                    <label>💥 % Crítico</label><input id="crit" type="number" value="10">
+                    <label>🧛 % Robo Vida</label><input id="lifesteal" type="number" value="0">
+                </div>
             </div>
-            <button class="mainAction" onclick="saveUnit()">GUARDAR TROPA</button>
-            <button onclick="closeCreator()" style="width:100%; background:none; border:none; color:#777; cursor:pointer; margin-top:10px;">Cerrar</button>
+
+            <div id="saveActions" style="margin-top:10px;">
+                <button class="mainAction" id="btnUpdate" onclick="saveUnit(true)">ACTUALIZAR EXISTENTE</button>
+                <button class="mainAction" id="btnSaveNew" onclick="saveUnit(false)" style="background:#007bff">GUARDAR COMO NUEVO</button>
+            </div>
+            <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#777; cursor:pointer; margin-top:5px;">Cancelar</button>
         </div>
     </div>
 </div>
 
+<div id="mapPanel" class="modal">
+    <h2 style="text-align:center; color:#ffae00">Editor de Mapa</h2>
+    <button id="mapToggleBtn" class="mainAction" style="background:#ffae00" onclick="toggleMapEditing()">ACTIVAR EDICIÓN</button>
+    <button class="mainAction" style="background:#444" onclick="clearMap()">LIMPIAR MAPA</button>
+    <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#777; cursor:pointer; margin-top:15px;">Finalizar</button>
+</div>
+
 <script>
 const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
-let units = [], baseUnits = [], selectedUnit = null, currentTeam = "blue", battleStarted = false;
 const pCanvas = document.getElementById("pixelCanvas"), pctx = pCanvas.getContext("2d");
-let pixelGrid = [], history = [], currentTool = 'pen', drawing = false, startX, startY;
+let units = [], baseUnits = [], sketches = [], mapObstacles = [], projectiles = [];
+let selectedUnit = null, currentTeam = "blue", battleStarted = false, isEditingMap = false;
+let currentTool = 'pen', drawing = false, animationFrame = 0, mouseGridX = 0, mouseGridY = 0;
+let editIndex = -1;
+const gridSize = 40;
 
 function resize() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; }
 window.onresize = resize; resize();
 
-/* --- LÓGICA DE DIBUJO PROFESIONAL --- */
-function resetGrid() {
-    const res = parseInt(document.getElementById("gridRes").value);
-    pixelGrid = Array(res).fill().map(() => Array(res).fill(null));
-    history = [];
-    renderGrid();
-}
-
-function saveHistory() {
-    history.push(JSON.stringify(pixelGrid));
-    if(history.length > 30) history.shift();
-}
-
-function undo() {
-    if(history.length > 0) {
-        pixelGrid = JSON.parse(history.pop());
-        renderGrid();
+/* --- SISTEMA DE COMBATE CON STATS --- */
+function calcularDanio(emisor, receptor) {
+    let danio = emisor.atk;
+    // Crítico
+    if (Math.random() * 100 < emisor.crit) {
+        danio *= 2;
+        crearTextoFlotante(receptor.x, receptor.y - 20, "CRÍTICO!", "#ffcc00");
     }
-}
-
-// Atajo Ctrl+Z
-window.onkeydown = (e) => {
-    if(e.ctrlKey && e.key === 'z' && document.getElementById("creatorPanel").style.display === "block") {
-        e.preventDefault();
-        undo();
+    // Armadura
+    danio = Math.max(1, danio - receptor.def);
+    // Robo de vida
+    if (emisor.lifesteal > 0) {
+        let cura = danio * (emisor.lifesteal / 100);
+        emisor.curHp = Math.min(emisor.hp, emisor.curHp + cura);
     }
+    return danio;
 }
 
-function renderGrid() {
-    const res = pixelGrid.length, s = pCanvas.width/res;
-    pctx.clearRect(0,0,pCanvas.width,pCanvas.height);
-    for(let y=0;y<res;y++) {
-        for(let x=0;x<res;x++) {
-            if(pixelGrid[y][x]) {
-                pctx.fillStyle = pixelGrid[y][x];
-                // Math.ceil para evitar separaciones visuales entre cubos
-                pctx.fillRect(x*s, y*s, Math.ceil(s), Math.ceil(s));
-            }
+let textosFlotantes = [];
+function crearTextoFlotante(x, y, texto, color) {
+    textosFlotantes.push({ x, y, texto, color, life: 60 });
+}
+
+class Projectile {
+    constructor(x, y, target, source) {
+        this.x = x; this.y = y; this.target = target; this.source = source;
+        this.speed = 5; this.dead = false;
+    }
+    update() {
+        let d = Math.hypot(this.target.x - this.x, this.target.y - this.y);
+        if (d < 10 || this.target.curHp <= 0) {
+            if (this.target.curHp > 0) this.target.curHp -= calcularDanio(this.source, this.target);
+            this.dead = true;
+        } else {
+            this.x += (this.target.x - this.x) / d * this.speed;
+            this.y += (this.target.y - this.y) / d * this.speed;
         }
     }
+    draw() { ctx.fillStyle = "yellow"; ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill(); }
 }
 
-function setTool(t) {
-    currentTool = t;
-    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-}
-
-pCanvas.onmousedown = (e) => {
-    saveHistory();
-    drawing = true;
-    const rect = pCanvas.getBoundingClientRect(), res = pixelGrid.length, s = pCanvas.width/res;
-    startX = Math.floor((e.clientX-rect.left)/s);
-    startY = Math.floor((e.clientY-rect.top)/s);
-    if(['pen','eraser','fill'].includes(currentTool)) paint(e);
-}
-
-window.onmouseup = (e) => {
-    if(!drawing) return;
-    const rect = pCanvas.getBoundingClientRect(), res = pixelGrid.length, s = pCanvas.width/res;
-    const endX = Math.floor((e.clientX-rect.left)/s);
-    const endY = Math.floor((e.clientY-rect.top)/s);
-    
-    if(currentTool === 'line') drawLine(startX, startY, endX, endY);
-    if(currentTool === 'rect') drawRect(startX, startY, endX, endY);
-    if(currentTool === 'circle') drawCircle(startX, startY, endX, endY);
-    
-    drawing = false;
-    renderGrid();
-}
-
-function paint(e) {
-    const rect = pCanvas.getBoundingClientRect(), res = pixelGrid.length, s = pCanvas.width/res;
-    const x = Math.floor((e.clientX-rect.left)/s), y = Math.floor((e.clientY-rect.top)/s);
-    if(x<0 || x>=res || y<0 || y>=res) return;
-
-    const col = currentTool === 'eraser' ? null : document.getElementById("pixelColor").value;
-    if(currentTool === 'fill') { floodFill(x, y, col); }
-    else if(drawing && (currentTool === 'pen' || currentTool === 'eraser')) { 
-        pixelGrid[y][x] = col; 
-        renderGrid(); 
-    }
-}
-
-pCanvas.onmousemove = (e) => { if(drawing && (currentTool==='pen' || currentTool==='eraser')) paint(e); }
-
-/* Formas Geométricas */
-function drawLine(x0, y0, x1, y1) {
-    let dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
-    let sx = (x0 < x1) ? 1 : -1, sy = (y0 < y1) ? 1 : -1, err = dx - dy;
-    const col = document.getElementById("pixelColor").value;
-    while(true) {
-        if(x0>=0 && x0<pixelGrid.length && y0>=0 && y0<pixelGrid.length) pixelGrid[y0][x0] = col;
-        if(x0===x1 && y0===y1) break;
-        let e2 = 2*err;
-        if(e2 > -dy) { err -= dy; x0 += sx; }
-        if(e2 < dx) { err += dx; y0 += sy; }
-    }
-}
-
-function drawRect(x0, y0, x1, y1) {
-    const col = document.getElementById("pixelColor").value;
-    for(let y=Math.min(y0,y1); y<=Math.max(y0,y1); y++)
-        for(let x=Math.min(x0,x1); x<=Math.max(x0,x1); x++)
-            if(y>=0 && y<pixelGrid.length && x>=0 && x<pixelGrid.length) pixelGrid[y][x] = col;
-}
-
-function drawCircle(x0, y0, x1, y1) {
-    const col = document.getElementById("pixelColor").value;
-    let r = Math.sqrt(Math.pow(x1-x0,2) + Math.pow(y1-y0,2));
-    for(let y=0; y<pixelGrid.length; y++)
-        for(let x=0; x<pixelGrid.length; x++)
-            if(Math.sqrt(Math.pow(x-x0,2) + Math.pow(y-y0,2)) <= r) pixelGrid[y][x] = col;
-}
-
-function floodFill(x, y, newCol) {
-    const target = pixelGrid[y][x];
-    if(target === newCol) return;
-    const res = pixelGrid.length, stack = [[x, y]];
-    while(stack.length){
-        const [cx,cy] = stack.pop();
-        if(cx>=0 && cx<res && cy>=0 && cy<res && pixelGrid[cy][cx] === target){
-            pixelGrid[cy][cx]=newCol;
-            stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
-        }
-    }
-    renderGrid();
-}
-
-function modifyColor(f) {
-    let c = document.getElementById("pixelColor").value;
-    let r = parseInt(c.slice(1,3),16)*f, g = parseInt(c.slice(3,5),16)*f, b = parseInt(c.slice(5,7),16)*f;
-    const h = n => Math.min(255,Math.max(0,Math.round(n))).toString(16).padStart(2,'0');
-    document.getElementById("pixelColor").value = `#${h(r)}${h(g)}${h(b)}`;
-}
-
-/* --- LOGICA DEL JUEGO --- */
 class Unit {
     constructor(x, y, team, data) {
         Object.assign(this, data);
@@ -256,91 +181,194 @@ class Unit {
     }
     update() {
         if(!battleStarted) return;
-        if(this.skillAura) {
-            units.filter(u => u.team !== this.team).forEach(en => {
-                if(Math.hypot(en.x-this.x, en.y-this.y) < 60) en.curHp -= 0.1;
-            });
-        }
+        let isStatic = (this.type === 'structure' || this.type === 'turret');
+        let isRange = (this.type === 'range' || this.type === 'turret');
         let enemies = units.filter(u => u.team !== this.team);
         if(!enemies.length) return;
         let target = enemies.reduce((p, c) => Math.hypot(c.x-this.x, c.y-this.y) < Math.hypot(p.x-this.x, p.y-this.y) ? c : p);
         let d = Math.hypot(target.x-this.x, target.y-this.y);
-        if(d > this.rng) {
-            this.x += (target.x-this.x)/d * this.spd;
-            this.y += (target.y-this.y)/d * this.spd;
-        } else if(this.cool <= 0) {
-            let dmg = Math.max(1, this.atk - target.def);
-            target.curHp -= dmg;
-            if(this.skillVamp) this.curHp = Math.min(this.hp, this.curHp + (dmg * (this.vampVal/100)));
-            if(target.skillThorns) this.curHp -= dmg * 0.3;
-            this.cool = 30;
+
+        if (!isStatic && d > this.rng) {
+            let vx = (target.x-this.x)/d * this.spd, vy = (target.y-this.y)/d * this.spd;
+            if(!mapObstacles.some(o => Math.abs(o.x - (this.x+vx)) < 25 && Math.abs(o.y - (this.y+vy)) < 25)) {
+                this.x += vx; this.y += vy;
+            }
+        } else if (d <= this.rng && this.cool <= 0) {
+            if (isRange) projectiles.push(new Projectile(this.x, this.y, target, this));
+            else if (this.type !== 'structure') target.curHp -= calcularDanio(this, target);
+            this.cool = this.rate; // Uso de la nueva stat de Cadencia
         }
         if(this.cool > 0) this.cool--;
     }
+    draw() {
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(this.img, this.x-20, this.y-20, 40, 40);
+        if(this.type !== 'structure' && this.type !== 'turret') {
+            const bounce = Math.sin(animationFrame * 0.1) * 5;
+            ctx.fillStyle = this.team === "blue" ? "#00aaff" : "#ff4444";
+            ctx.beginPath(); ctx.moveTo(this.x, this.y-35+bounce); ctx.lineTo(this.x-5, this.y-42+bounce); ctx.lineTo(this.x+5, this.y-42+bounce); ctx.fill();
+        }
+        ctx.fillStyle="rgba(0,0,0,0.5)"; ctx.fillRect(this.x-15, this.y-28, 30, 4);
+        ctx.fillStyle=this.team === "blue" ? "#00f" : "#f00"; ctx.fillRect(this.x-15, this.y-28, 30*(this.curHp/this.hp), 4);
+    }
 }
 
-function saveUnit() {
-    const data = {
-        name: document.getElementById("name").value,
-        sprite: pCanvas.toDataURL(),
-        hp: +document.getElementById("hp").value,
-        atk: +document.getElementById("atk").value,
-        def: +document.getElementById("def").value,
-        spd: +document.getElementById("spd").value,
-        rng: +document.getElementById("rng").value,
-        skillVamp: document.getElementById("skillVamp").checked,
-        vampVal: +document.getElementById("vampVal").value,
-        skillExplode: document.getElementById("skillExplode").checked,
-        skillThorns: document.getElementById("skillThorns").checked,
-        skillAura: document.getElementById("skillAura").checked
+/* --- LOGICA GENERAL --- */
+canvas.onmousemove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouseGridX = Math.floor((e.clientX - rect.left) / gridSize) * gridSize + gridSize/2;
+    mouseGridY = Math.floor((e.clientY - rect.top) / gridSize) * gridSize + gridSize/2;
+};
+
+canvas.onclick = () => {
+    if(battleStarted) return;
+    if(isEditingMap) {
+        const i = mapObstacles.findIndex(o => o.x === mouseGridX && o.y === mouseGridY);
+        if(i > -1) mapObstacles.splice(i, 1); else mapObstacles.push({x:mouseGridX, y:mouseGridY});
+        return;
+    }
+    if(!selectedUnit) return;
+    const ocupado = units.some(u => u.x === mouseGridX && u.y === mouseGridY) || mapObstacles.some(o => o.x === mouseGridX && o.y === mouseGridY);
+    if(!ocupado) units.push(new Unit(mouseGridX, mouseGridY, currentTeam, selectedUnit));
+};
+
+let objetivo = null;
+const contextMenu = document.getElementById("contextMenu");
+window.oncontextmenu = (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const uCanvas = units.find(u => Math.hypot(u.x-(e.clientX-rect.left), u.y-(e.clientY-rect.top)) < 25);
+    if(uCanvas) { objetivo = {type:'canvas', data: uCanvas}; document.getElementById("ctxEdit").style.display = "none"; mostrarMenu(e); return; }
+    const btn = e.target.closest('.unitBtn');
+    if(btn) {
+        const id = btn.dataset.id;
+        objetivo = {type:'base', index: id, data: baseUnits[id]};
+        document.getElementById("ctxEdit").style.display = "block"; 
+        mostrarMenu(e);
+    }
+};
+
+function mostrarMenu(e) { contextMenu.style.display="block"; contextMenu.style.left = e.pageX+"px"; contextMenu.style.top = e.pageY+"px"; }
+window.onclick = () => contextMenu.style.display="none";
+
+function cargarEnEditor() {
+    if(!objetivo || objetivo.type !== 'base') return;
+    const data = objetivo.data;
+    editIndex = parseInt(objetivo.index);
+    openCreator();
+    document.getElementById("editorTitle").innerText = "Editando: " + data.name;
+    document.getElementById("btnUpdate").style.display = "block";
+    
+    document.getElementById("name").value = data.name;
+    document.getElementById("unitType").value = data.type;
+    document.getElementById("hp").value = data.hp;
+    document.getElementById("atk").value = data.atk;
+    document.getElementById("def").value = data.def || 0; // Nueva stat
+    document.getElementById("spd").value = data.spd;
+    document.getElementById("rng").value = data.rng;
+    document.getElementById("rate").value = data.rate || 60; // Nueva stat
+    document.getElementById("crit").value = data.crit || 0; // Nueva stat
+    document.getElementById("lifesteal").value = data.lifesteal || 0; // Nueva stat
+    
+    const img = new Image(); img.src = data.sprite;
+    img.onload = () => { pctx.clearRect(0,0,240,240); pctx.drawImage(img, 0, 0, 240, 240); };
+}
+
+function saveUnit(isUpdate) {
+    const d = {
+        name: document.getElementById("name").value, type: document.getElementById("unitType").value,
+        sprite: pCanvas.toDataURL(), 
+        hp: +document.getElementById("hp").value, atk: +document.getElementById("atk").value,
+        def: +document.getElementById("def").value, spd: +document.getElementById("spd").value,
+        rng: +document.getElementById("rng").value, rate: +document.getElementById("rate").value,
+        crit: +document.getElementById("crit").value, lifesteal: +document.getElementById("lifesteal").value
     };
-    baseUnits.push(data);
-    localStorage.setItem('tabs_final_data', JSON.stringify(baseUnits));
-    updateButtons(); closeCreator();
+    if(isUpdate && editIndex > -1) baseUnits[editIndex] = d;
+    else baseUnits.push(d);
+    updateButtons(); saveAll(); closeModals();
 }
 
+function loop() {
+    animationFrame++;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(!battleStarted) {
+        ctx.strokeStyle = "#222";
+        for(let x=0; x<canvas.width; x+=gridSize) ctx.strokeRect(x, 0, 0.5, canvas.height);
+        for(let y=0; y<canvas.height; y+=gridSize) ctx.strokeRect(0, y, canvas.width, 0.5);
+    }
+    mapObstacles.forEach(o => { ctx.fillStyle="#444"; ctx.fillRect(o.x-18, o.y-18, 36, 36); });
+    projectiles.forEach((p, i) => { p.update(); p.draw(); if(p.dead) projectiles.splice(i,1); });
+    units.forEach(u => { u.update(); u.draw(); });
+    
+    // Textos flotantes
+    textosFlotantes.forEach((t, i) => {
+        ctx.fillStyle = t.color; ctx.font = "bold 12px Arial";
+        ctx.fillText(t.texto, t.x, t.y); t.y -= 0.5; t.life--;
+        if(t.life <= 0) textosFlotantes.splice(i, 1);
+    });
+
+    units = units.filter(u => u.curHp > 0);
+    requestAnimationFrame(loop);
+}
+
+/* --- UTILIDADES --- */
 function updateButtons() {
     const g = document.getElementById("unitButtons"); g.innerHTML = "";
-    baseUnits.forEach(u => {
-        const b = document.createElement("button");
-        b.className = "unitBtn" + (selectedUnit === u ? " selected" : "");
-        b.innerHTML = `<img src="${u.sprite}" width="30">`;
-        b.onclick = () => { selectedUnit = u; updateButtons(); };
+    baseUnits.forEach((u, i) => {
+        const b = document.createElement("button"); b.className = "unitBtn"; b.dataset.id = i;
+        if(selectedUnit === u) b.classList.add("selected");
+        const icons = {melee:'⚔️', range:'🏹', structure:'🏰', turret:'🛰️'};
+        b.innerHTML = `<img src="${u.sprite}" width="30"><br><small>${icons[u.type]}</small>`;
+        b.onclick = () => { selectedUnit = u; isEditingMap = false; updateButtons(); };
         g.appendChild(b);
     });
 }
 
-canvas.onclick = (e) => {
-    if(!selectedUnit || battleStarted) return;
-    const rect = canvas.getBoundingClientRect();
-    units.push(new Unit(e.clientX - rect.left, e.clientY - rect.top, currentTeam, selectedUnit));
+function adaptStats() {
+    const t = document.getElementById("unitType").value;
+    const s = document.getElementById("spd"), r = document.getElementById("rng"), rate = document.getElementById("rate");
+    if(t==='structure'){ s.value=0; r.value=0; rate.value=999; }
+    else if(t==='turret'){ s.value=0; r.value=200; rate.value=60; }
+    else if(t==='range'){ s.value=1; r.value=150; rate.value=80; }
+    else { s.value=1.2; r.value=40; rate.value=60; }
 }
 
-function toggleVampField() { document.getElementById("vampExtra").classList.toggle("hidden", !document.getElementById("skillVamp").checked); }
-function openCreator() { document.getElementById("creatorPanel").style.display="block"; resetGrid(); }
-function closeCreator() { document.getElementById("creatorPanel").style.display="none"; }
+function saveAll() { localStorage.setItem('tabs_final_v4', JSON.stringify(baseUnits)); localStorage.setItem('tabs_sketches_v4', JSON.stringify(sketches)); }
+function openCreator() { editIndex = -1; document.getElementById("editorTitle").innerText = "Creador de Tropas"; document.getElementById("btnUpdate").style.display = "none"; document.getElementById("creatorPanel").style.display="block"; renderSketches(); }
+function openMapEditor() { document.getElementById("mapPanel").style.display="block"; }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display="none"); isEditingMap=false; }
+function toggleMapEditing() { isEditingMap = !isEditingMap; document.getElementById("mapToggleBtn").style.background = isEditingMap ? "#dc3545" : "#ffae00"; }
+function clearMap() { mapObstacles = []; }
 function toggleTeam() { currentTeam = currentTeam==="blue"?"red":"blue"; document.getElementById("teamBtn").innerHTML = (currentTeam==="blue"?"🔵":"🔴")+"<small>Bando</small>"; }
-function startBattle() { battleStarted = true; }
-function clearUnits() { units = []; battleStarted = false; }
-
-function loop() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    units.forEach(u => u.update());
-    units.forEach(u => { if(u.curHp <= 0 && u.skillExplode) {
-        ctx.fillStyle = "orange"; ctx.beginPath(); ctx.arc(u.x, u.y, 40, 0, Math.PI*2); ctx.fill();
-        units.filter(en => en.team !== u.team && Math.hypot(en.x-u.x, en.y-u.y) < 50).forEach(en => en.curHp -= 25);
-    }});
-    units = units.filter(u => u.curHp > 0);
-    units.forEach(u => {
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(u.img, u.x-20, u.y-20, 40, 40);
-        ctx.fillStyle="red"; ctx.fillRect(u.x-20, u.y-28, 40*(u.curHp/u.hp), 3);
+function startBattle() { battleStarted = true; isEditingMap = false; }
+function clearUnits() { units = []; projectiles = []; battleStarted = false; textosFlotantes = []; }
+function resetGrid() { pctx.clearRect(0,0,240,240); }
+function setTool(t) { currentTool = t; document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); event.currentTarget.classList.add('active'); }
+function saveSketch() { sketches.push(pCanvas.toDataURL()); renderSketches(); saveAll(); }
+function renderSketches() {
+    const gal = document.getElementById("sketchGallery"); gal.innerHTML = "";
+    sketches.forEach(s => {
+        const img = document.createElement("img"); img.src = s; img.className="sketch-item";
+        img.onclick = () => { const i = new Image(); i.src=s; i.onload=()=> { pctx.clearRect(0,0,240,240); pctx.drawImage(i,0,0,240,240); }};
+        gal.appendChild(img);
     });
-    requestAnimationFrame(loop);
 }
+function borrarObjetivo() { if(objetivo.type === 'canvas') units = units.filter(u => u !== objetivo.data); else { baseUnits.splice(objetivo.index, 1); updateButtons(); } saveAll(); }
+function exportarObjetivo() { navigator.clipboard.writeText(JSON.stringify(objetivo.data)); alert("Copiado"); }
+function importarUnidadGlobal() { try { const n = JSON.parse(prompt("Código:")); baseUnits.push(n); updateButtons(); saveAll(); } catch(e) {} }
 
-const saved = localStorage.getItem('tabs_final_data');
-if(saved) { baseUnits = JSON.parse(saved); updateButtons(); }
+pCanvas.onmousedown = () => drawing = true; window.onmouseup = () => drawing = false;
+pCanvas.onmousemove = (e) => {
+    if(!drawing) return;
+    const rect = pCanvas.getBoundingClientRect(), s = 15;
+    const x = Math.floor((e.clientX - rect.left) / s) * s, y = Math.floor((e.clientY - rect.top) / s) * s;
+    if(currentTool==='pen'){ pctx.fillStyle = document.getElementById("pixelColor").value; pctx.fillRect(x,y,s,s); }
+    else pctx.clearRect(x,y,s,s);
+};
+
+const su = localStorage.getItem('tabs_final_v4'), ss = localStorage.getItem('tabs_sketches_v4');
+if(su) baseUnits = JSON.parse(su); if(ss) sketches = JSON.parse(ss);
+updateButtons();
 loop();
 </script>
 </body>
