@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>TABS RPG Ultra - Stats Avanzadas</title>
+    <title>TABS RPG Ultra - Pro Drawing Edition</title>
     <style>
         body { margin: 0; background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
         #leftPanel { width: 320px; background: #151515; padding: 15px; box-sizing: border-box; border-right: 2px solid #333; overflow-y: auto; }
@@ -13,28 +13,32 @@
         #gameContainer { flex: 1; position: relative; background: #111; cursor: crosshair; }
         canvas#game { display: block; width: 100%; height: 100%; }
         
-        /* Modales */
         .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1b1b1b; padding: 20px; display: none; border: 2px solid #444; z-index: 100; border-radius: 12px; box-shadow: 0 0 50px black; color: white; }
-        #creatorPanel { width: 900px; max-height: 95vh; overflow-y: auto; }
+        #creatorPanel { width: 950px; max-height: 95vh; overflow-y: auto; }
         .editor-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
         
-        /* Formulario de Stats en 2 columnas */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        /* Formulario */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         label { font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: bold; display: block; margin-top: 5px; }
         input, select { background: #111; border: 1px solid #444; color: #0f0; padding: 6px; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 13px; }
         
-        .sketch-gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; max-height: 100px; overflow-y: auto; background: #111; padding: 10px; border: 1px solid #333; margin-top: 10px; }
-        .sketch-item { border: 1px solid #444; cursor: pointer; background: #222; image-rendering: pixelated; width: 100%; }
-        .paint-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 10px 0; }
-        .tool-btn { background: #333; border: 1px solid #555; color: white; padding: 8px; cursor: pointer; border-radius: 4px; font-size: 12px; }
+        /* Herramientas de dibujo */
+        .paint-tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 10px 0; }
+        .tool-btn { background: #333; border: 1px solid #555; color: white; padding: 8px; cursor: pointer; border-radius: 4px; font-size: 14px; text-align: center; }
         .tool-btn.active { background: #007bff; border-color: #fff; }
-        #pixelCanvas { border: 2px solid #555; background: #eee; image-rendering: pixelated; display: block; margin: 0 auto; }
+        .tool-btn:hover { background: #444; }
+        
+        .move-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 5px; }
+        .move-btn { background: #222; border: 1px solid #444; color: white; cursor: pointer; padding: 5px; border-radius: 4px; }
+
+        #pixelCanvas { border: 2px solid #555; background: #eee; image-rendering: pixelated; display: block; margin: 0 auto; cursor: crosshair; }
         .mainAction { background: #28a745; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
         
-        /* Menú Contextual */
-        #contextMenu { display: none; position: absolute; background: #1b1b1b; border: 1px solid #444; border-radius: 6px; z-index: 2000; min-width: 170px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        #contextMenu { display: none; position: absolute; background: #1b1b1b; border: 1px solid #444; border-radius: 6px; z-index: 2000; min-width: 170px; }
         .context-item { padding: 10px 15px; font-size: 13px; cursor: pointer; color: #ddd; border-bottom: 1px solid #333; }
         .context-item:hover { background: #007bff; color: white; }
+        .sketch-gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; max-height: 80px; overflow-y: auto; background: #111; padding: 5px; border: 1px solid #333; }
+        .sketch-item { border: 1px solid #444; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
@@ -62,127 +66,188 @@
 </div>
 
 <div id="creatorPanel" class="modal">
-    <h2 id="editorTitle" style="margin:0; text-align:center; color:#007bff">Editor de Tropas</h2>
+    <h2 id="editorTitle" style="margin:0; text-align:center; color:#007bff">Editor Pro Art</h2>
     <div class="editor-layout">
         <div>
             <canvas id="pixelCanvas" width="240" height="240"></canvas>
+            
             <div class="paint-tools">
-                <button class="tool-btn active" onclick="setTool('pen')">✏️</button>
-                <button class="tool-btn" onclick="setTool('eraser')">🧽</button>
-                <button class="tool-btn" onclick="resetGrid()">🆕</button>
-                <button class="tool-btn" onclick="saveSketch()" style="background:#6f42c1">💾</button>
-                <input type="color" id="pixelColor" value="#ff0000" style="grid-column: span 4; height:35px; margin-top:5px; border:none; cursor:pointer;">
+                <button class="tool-btn active" title="Lápiz" onclick="setTool('pen')">✏️</button>
+                <button class="tool-btn" title="Borrador" onclick="setTool('eraser')">🧽</button>
+                <button class="tool-btn" title="Bote de Pintura" onclick="setTool('fill')">🪣</button>
+                <button class="tool-btn" title="Cuentagotas" onclick="setTool('picker')">👁️</button>
+                <button class="tool-btn" id="mirrorBtn" title="Simetría" onclick="toggleMirror()">🌓</button>
             </div>
-            <div class="section-title">Bocetos</div>
+            
+            <input type="color" id="pixelColor" value="#ff0000" style="width:100%; height:30px; border:none; padding:0; cursor:pointer; background:none;">
+
+            <div class="move-tools">
+                <button class="move-btn" onclick="movePixels(0,-1)">⬆️</button>
+                <button class="move-btn" onclick="movePixels(0,1)">⬇️</button>
+                <button class="move-btn" onclick="movePixels(-1,0)">⬅️</button>
+                <button class="move-btn" onclick="movePixels(1,0)">➡️</button>
+                <button class="move-btn" style="grid-column: span 2; background:#633" onclick="resetGrid()">🧹 Limpiar</button>
+                <button class="move-btn" style="grid-column: span 2; background:#6f42c1" onclick="saveSketch()">💾 Boceto</button>
+            </div>
+            
             <div id="sketchGallery" class="sketch-gallery"></div>
         </div>
-        <div>
-            <label>Nombre de la Unidad</label>
-            <input id="name" value="Guerrero">
-            
-            <label>Clase</label>
-            <select id="unitType" onchange="adaptStats()">
-                <option value="melee">⚔️ Cuerpo a Cuerpo</option>
-                <option value="range">🏹 Tropa de Rango</option>
-                <option value="structure">🏰 Estructura</option>
-                <option value="turret">🛰️ Torreta</option>
-            </select>
 
+        <div>
             <div class="stats-grid">
+                <div style="grid-column: span 2;">
+                    <label>Nombre</label><input id="name" value="Nuevo Guerrero">
+                    <label>Clase</label>
+                    <select id="unitType" onchange="adaptStats()">
+                        <option value="melee">⚔️ Melee</option>
+                        <option value="range">🏹 Rango</option>
+                        <option value="structure">🏰 Muro</option>
+                        <option value="turret">🛰️ Torreta</option>
+                    </select>
+                </div>
                 <div>
-                    <label>❤️ Vida Máxima</label><input id="hp" type="number" value="100">
-                    <label>⚔️ Daño Base</label><input id="atk" type="number" value="15">
+                    <label>❤️ Vida</label><input id="hp" type="number" value="100">
+                    <label>⚔️ Ataque</label><input id="atk" type="number" value="15">
                     <label>🛡️ Armadura</label><input id="def" type="number" value="0">
                     <label>🏃 Velocidad</label><input id="spd" type="number" value="1.2" step="0.1">
                 </div>
                 <div>
-                    <label>🎯 Rango Ataque</label><input id="rng" type="number" value="40">
-                    <label>⚡ Cadencia (Cooldown)</label><input id="rate" type="number" value="60">
+                    <label>🎯 Rango</label><input id="rng" type="number" value="40">
+                    <label>⚡ Cadencia</label><input id="rate" type="number" value="60">
                     <label>💥 % Crítico</label><input id="crit" type="number" value="10">
-                    <label>🧛 % Robo Vida</label><input id="lifesteal" type="number" value="0">
+                    <label>🧛 % Robo</label><input id="lifesteal" type="number" value="0">
                 </div>
             </div>
 
-            <div id="saveActions" style="margin-top:10px;">
-                <button class="mainAction" id="btnUpdate" onclick="saveUnit(true)">ACTUALIZAR EXISTENTE</button>
-                <button class="mainAction" id="btnSaveNew" onclick="saveUnit(false)" style="background:#007bff">GUARDAR COMO NUEVO</button>
-            </div>
+            <button class="mainAction" id="btnUpdate" onclick="saveUnit(true)">ACTUALIZAR EXISTENTE</button>
+            <button class="mainAction" id="btnSaveNew" onclick="saveUnit(false)" style="background:#007bff">GUARDAR COMO NUEVO</button>
             <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#777; cursor:pointer; margin-top:5px;">Cancelar</button>
         </div>
     </div>
 </div>
 
 <div id="mapPanel" class="modal">
-    <h2 style="text-align:center; color:#ffae00">Editor de Mapa</h2>
-    <button id="mapToggleBtn" class="mainAction" style="background:#ffae00" onclick="toggleMapEditing()">ACTIVAR EDICIÓN</button>
-    <button class="mainAction" style="background:#444" onclick="clearMap()">LIMPIAR MAPA</button>
-    <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#777; cursor:pointer; margin-top:15px;">Finalizar</button>
+    <h2 style="text-align:center; color:#ffae00">Mapa</h2>
+    <button id="mapToggleBtn" class="mainAction" style="background:#ffae00" onclick="toggleMapEditing()">ACTIVAR MODO MUROS</button>
+    <button class="mainAction" style="background:#444" onclick="clearMap()">BORRAR TODO EL MAPA</button>
+    <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#777; cursor:pointer; margin-top:15px;">Salir</button>
 </div>
 
 <script>
+/* --- CONFIGURACIÓN BASE --- */
 const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
 const pCanvas = document.getElementById("pixelCanvas"), pctx = pCanvas.getContext("2d");
 let units = [], baseUnits = [], sketches = [], mapObstacles = [], projectiles = [];
 let selectedUnit = null, currentTeam = "blue", battleStarted = false, isEditingMap = false;
-let currentTool = 'pen', drawing = false, animationFrame = 0, mouseGridX = 0, mouseGridY = 0;
-let editIndex = -1;
-const gridSize = 40;
+let currentTool = 'pen', drawing = false, isMirror = false, animationFrame = 0;
+let editIndex = -1, mouseGridX = 0, mouseGridY = 0;
+const gridSize = 40, pSize = 15; // Tamaño del píxel en el editor
 
 function resize() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; }
 window.onresize = resize; resize();
 
-/* --- SISTEMA DE COMBATE CON STATS --- */
+/* --- NUEVAS HERRAMIENTAS DE DIBUJO --- */
+
+function getPixelColor(x, y) {
+    const data = pctx.getImageData(x, y, 1, 1).data;
+    if(data[3] === 0) return null;
+    return "#" + ((1 << 24) + (data[0] << 16) + (data[1] << 8) + data[2]).toString(16).slice(1);
+}
+
+function floodFill(startX, startY, targetColor, fillColor) {
+    if (targetColor === fillColor) return;
+    const pixelsToCheck = [{x: startX, y: startY}];
+    while (pixelsToCheck.length > 0) {
+        const {x, y} = pixelsToCheck.pop();
+        const currentColor = getPixelColor(x, y);
+        if (currentColor === targetColor) {
+            pctx.fillStyle = fillColor;
+            pctx.fillRect(x, y, pSize, pSize);
+            if (x + pSize < 240) pixelsToCheck.push({x: x + pSize, y: y});
+            if (x - pSize >= 0) pixelsToCheck.push({x: x - pSize, y: y});
+            if (y + pSize < 240) pixelsToCheck.push({x: x, y: y + pSize});
+            if (y - pSize >= 0) pixelsToCheck.push({x: x, y: y - pSize});
+        }
+    }
+}
+
+function toggleMirror() {
+    isMirror = !isMirror;
+    document.getElementById("mirrorBtn").classList.toggle("active", isMirror);
+}
+
+function movePixels(dx, dy) {
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = 240; tempCanvas.height = 240;
+    tempCanvas.getContext("2d").drawImage(pCanvas, 0, 0);
+    pctx.clearRect(0, 0, 240, 240);
+    pctx.drawImage(tempCanvas, dx * pSize, dy * pSize);
+}
+
+function drawAt(e) {
+    const rect = pCanvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / pSize) * pSize;
+    const y = Math.floor((e.clientY - rect.top) / pSize) * pSize;
+    const color = document.getElementById("pixelColor").value;
+
+    if (currentTool === 'picker') {
+        const picked = getPixelColor(x, y);
+        if (picked) document.getElementById("pixelColor").value = picked;
+        setTool('pen');
+        return;
+    }
+
+    if (currentTool === 'fill') {
+        floodFill(x, y, getPixelColor(x, y), color);
+        return;
+    }
+
+    const paint = (px, py) => {
+        if (currentTool === 'pen') { pctx.fillStyle = color; pctx.fillRect(px, py, pSize, pSize); }
+        else { pctx.clearRect(px, py, pSize, pSize); }
+    };
+
+    paint(x, y);
+    if (isMirror) paint(240 - x - pSize, y);
+}
+
+pCanvas.onmousedown = (e) => { drawing = true; drawAt(e); };
+window.onmouseup = () => drawing = false;
+pCanvas.onmousemove = (e) => { if(drawing) drawAt(e); };
+
+/* --- MOTOR DE COMBATE (Igual al anterior pero integrado) --- */
+
 function calcularDanio(emisor, receptor) {
     let danio = emisor.atk;
-    // Crítico
-    if (Math.random() * 100 < emisor.crit) {
-        danio *= 2;
-        crearTextoFlotante(receptor.x, receptor.y - 20, "CRÍTICO!", "#ffcc00");
-    }
-    // Armadura
+    if (Math.random() * 100 < emisor.crit) { danio *= 2; crearTextoFlotante(receptor.x, receptor.y - 20, "CRIT!", "#ffcc00"); }
     danio = Math.max(1, danio - receptor.def);
-    // Robo de vida
-    if (emisor.lifesteal > 0) {
-        let cura = danio * (emisor.lifesteal / 100);
-        emisor.curHp = Math.min(emisor.hp, emisor.curHp + cura);
-    }
+    if (emisor.lifesteal > 0) emisor.curHp = Math.min(emisor.hp, emisor.curHp + (danio * emisor.lifesteal / 100));
     return danio;
 }
 
 let textosFlotantes = [];
-function crearTextoFlotante(x, y, texto, color) {
-    textosFlotantes.push({ x, y, texto, color, life: 60 });
-}
+function crearTextoFlotante(x, y, texto, color) { textosFlotantes.push({ x, y, texto, color, life: 60 }); }
 
 class Projectile {
-    constructor(x, y, target, source) {
-        this.x = x; this.y = y; this.target = target; this.source = source;
-        this.speed = 5; this.dead = false;
-    }
+    constructor(x, y, target, source) { this.x = x; this.y = y; this.target = target; this.source = source; this.speed = 6; this.dead = false; }
     update() {
         let d = Math.hypot(this.target.x - this.x, this.target.y - this.y);
         if (d < 10 || this.target.curHp <= 0) {
             if (this.target.curHp > 0) this.target.curHp -= calcularDanio(this.source, this.target);
             this.dead = true;
-        } else {
-            this.x += (this.target.x - this.x) / d * this.speed;
-            this.y += (this.target.y - this.y) / d * this.speed;
-        }
+        } else { this.x += (this.target.x - this.x) / d * this.speed; this.y += (this.target.y - this.y) / d * this.speed; }
     }
     draw() { ctx.fillStyle = "yellow"; ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill(); }
 }
 
 class Unit {
     constructor(x, y, team, data) {
-        Object.assign(this, data);
-        this.x = x; this.y = y; this.team = team;
-        this.curHp = this.hp; this.cool = 0;
-        this.img = new Image(); this.img.src = this.sprite;
+        Object.assign(this, data); this.x = x; this.y = y; this.team = team;
+        this.curHp = this.hp; this.cool = 0; this.img = new Image(); this.img.src = this.sprite;
     }
     update() {
         if(!battleStarted) return;
         let isStatic = (this.type === 'structure' || this.type === 'turret');
-        let isRange = (this.type === 'range' || this.type === 'turret');
         let enemies = units.filter(u => u.team !== this.team);
         if(!enemies.length) return;
         let target = enemies.reduce((p, c) => Math.hypot(c.x-this.x, c.y-this.y) < Math.hypot(p.x-this.x, p.y-this.y) ? c : p);
@@ -190,30 +255,23 @@ class Unit {
 
         if (!isStatic && d > this.rng) {
             let vx = (target.x-this.x)/d * this.spd, vy = (target.y-this.y)/d * this.spd;
-            if(!mapObstacles.some(o => Math.abs(o.x - (this.x+vx)) < 25 && Math.abs(o.y - (this.y+vy)) < 25)) {
-                this.x += vx; this.y += vy;
-            }
+            if(!mapObstacles.some(o => Math.abs(o.x - (this.x+vx)) < 25 && Math.abs(o.y - (this.y+vy)) < 25)) { this.x += vx; this.y += vy; }
         } else if (d <= this.rng && this.cool <= 0) {
-            if (isRange) projectiles.push(new Projectile(this.x, this.y, target, this));
+            if (this.type === 'range' || this.type === 'turret') projectiles.push(new Projectile(this.x, this.y, target, this));
             else if (this.type !== 'structure') target.curHp -= calcularDanio(this, target);
-            this.cool = this.rate; // Uso de la nueva stat de Cadencia
+            this.cool = this.rate;
         }
         if(this.cool > 0) this.cool--;
     }
     draw() {
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(this.img, this.x-20, this.y-20, 40, 40);
-        if(this.type !== 'structure' && this.type !== 'turret') {
-            const bounce = Math.sin(animationFrame * 0.1) * 5;
-            ctx.fillStyle = this.team === "blue" ? "#00aaff" : "#ff4444";
-            ctx.beginPath(); ctx.moveTo(this.x, this.y-35+bounce); ctx.lineTo(this.x-5, this.y-42+bounce); ctx.lineTo(this.x+5, this.y-42+bounce); ctx.fill();
-        }
         ctx.fillStyle="rgba(0,0,0,0.5)"; ctx.fillRect(this.x-15, this.y-28, 30, 4);
         ctx.fillStyle=this.team === "blue" ? "#00f" : "#f00"; ctx.fillRect(this.x-15, this.y-28, 30*(this.curHp/this.hp), 4);
     }
 }
 
-/* --- LOGICA GENERAL --- */
+/* --- LOGICA UI --- */
 canvas.onmousemove = (e) => {
     const rect = canvas.getBoundingClientRect();
     mouseGridX = Math.floor((e.clientX - rect.left) / gridSize) * gridSize + gridSize/2;
@@ -228,65 +286,8 @@ canvas.onclick = () => {
         return;
     }
     if(!selectedUnit) return;
-    const ocupado = units.some(u => u.x === mouseGridX && u.y === mouseGridY) || mapObstacles.some(o => o.x === mouseGridX && o.y === mouseGridY);
-    if(!ocupado) units.push(new Unit(mouseGridX, mouseGridY, currentTeam, selectedUnit));
+    if(!units.some(u => u.x === mouseGridX && u.y === mouseGridY)) units.push(new Unit(mouseGridX, mouseGridY, currentTeam, selectedUnit));
 };
-
-let objetivo = null;
-const contextMenu = document.getElementById("contextMenu");
-window.oncontextmenu = (e) => {
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const uCanvas = units.find(u => Math.hypot(u.x-(e.clientX-rect.left), u.y-(e.clientY-rect.top)) < 25);
-    if(uCanvas) { objetivo = {type:'canvas', data: uCanvas}; document.getElementById("ctxEdit").style.display = "none"; mostrarMenu(e); return; }
-    const btn = e.target.closest('.unitBtn');
-    if(btn) {
-        const id = btn.dataset.id;
-        objetivo = {type:'base', index: id, data: baseUnits[id]};
-        document.getElementById("ctxEdit").style.display = "block"; 
-        mostrarMenu(e);
-    }
-};
-
-function mostrarMenu(e) { contextMenu.style.display="block"; contextMenu.style.left = e.pageX+"px"; contextMenu.style.top = e.pageY+"px"; }
-window.onclick = () => contextMenu.style.display="none";
-
-function cargarEnEditor() {
-    if(!objetivo || objetivo.type !== 'base') return;
-    const data = objetivo.data;
-    editIndex = parseInt(objetivo.index);
-    openCreator();
-    document.getElementById("editorTitle").innerText = "Editando: " + data.name;
-    document.getElementById("btnUpdate").style.display = "block";
-    
-    document.getElementById("name").value = data.name;
-    document.getElementById("unitType").value = data.type;
-    document.getElementById("hp").value = data.hp;
-    document.getElementById("atk").value = data.atk;
-    document.getElementById("def").value = data.def || 0; // Nueva stat
-    document.getElementById("spd").value = data.spd;
-    document.getElementById("rng").value = data.rng;
-    document.getElementById("rate").value = data.rate || 60; // Nueva stat
-    document.getElementById("crit").value = data.crit || 0; // Nueva stat
-    document.getElementById("lifesteal").value = data.lifesteal || 0; // Nueva stat
-    
-    const img = new Image(); img.src = data.sprite;
-    img.onload = () => { pctx.clearRect(0,0,240,240); pctx.drawImage(img, 0, 0, 240, 240); };
-}
-
-function saveUnit(isUpdate) {
-    const d = {
-        name: document.getElementById("name").value, type: document.getElementById("unitType").value,
-        sprite: pCanvas.toDataURL(), 
-        hp: +document.getElementById("hp").value, atk: +document.getElementById("atk").value,
-        def: +document.getElementById("def").value, spd: +document.getElementById("spd").value,
-        rng: +document.getElementById("rng").value, rate: +document.getElementById("rate").value,
-        crit: +document.getElementById("crit").value, lifesteal: +document.getElementById("lifesteal").value
-    };
-    if(isUpdate && editIndex > -1) baseUnits[editIndex] = d;
-    else baseUnits.push(d);
-    updateButtons(); saveAll(); closeModals();
-}
 
 function loop() {
     animationFrame++;
@@ -299,51 +300,36 @@ function loop() {
     mapObstacles.forEach(o => { ctx.fillStyle="#444"; ctx.fillRect(o.x-18, o.y-18, 36, 36); });
     projectiles.forEach((p, i) => { p.update(); p.draw(); if(p.dead) projectiles.splice(i,1); });
     units.forEach(u => { u.update(); u.draw(); });
-    
-    // Textos flotantes
-    textosFlotantes.forEach((t, i) => {
-        ctx.fillStyle = t.color; ctx.font = "bold 12px Arial";
-        ctx.fillText(t.texto, t.x, t.y); t.y -= 0.5; t.life--;
-        if(t.life <= 0) textosFlotantes.splice(i, 1);
-    });
-
+    textosFlotantes.forEach((t, i) => { ctx.fillStyle = t.color; ctx.fillText(t.texto, t.x, t.y); t.y -= 0.5; t.life--; if(t.life<=0) textosFlotantes.splice(i,1); });
     units = units.filter(u => u.curHp > 0);
     requestAnimationFrame(loop);
 }
 
 /* --- UTILIDADES --- */
+function setTool(t) { currentTool = t; document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); event.currentTarget.classList.add('active'); }
+function resetGrid() { pctx.clearRect(0,0,240,240); }
+function openCreator() { editIndex = -1; document.getElementById("editorTitle").innerText = "Nuevo Guerrero"; document.getElementById("btnUpdate").style.display = "none"; document.getElementById("creatorPanel").style.display="block"; renderSketches(); }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display="none"); isEditingMap=false; }
+function saveUnit(isUpdate) {
+    const d = { name: document.getElementById("name").value, type: document.getElementById("unitType").value, sprite: pCanvas.toDataURL(), hp: +document.getElementById("hp").value, atk: +document.getElementById("atk").value, def: +document.getElementById("def").value, spd: +document.getElementById("spd").value, rng: +document.getElementById("rng").value, rate: +document.getElementById("rate").value, crit: +document.getElementById("crit").value, lifesteal: +document.getElementById("lifesteal").value };
+    if(isUpdate && editIndex > -1) baseUnits[editIndex] = d; else baseUnits.push(d);
+    updateButtons(); saveAll(); closeModals();
+}
 function updateButtons() {
     const g = document.getElementById("unitButtons"); g.innerHTML = "";
     baseUnits.forEach((u, i) => {
-        const b = document.createElement("button"); b.className = "unitBtn"; b.dataset.id = i;
+        const b = document.createElement("button"); b.className = "unitBtn"; b.innerHTML = `<img src="${u.sprite}" width="30">`;
+        b.onclick = () => { selectedUnit = u; updateButtons(); };
         if(selectedUnit === u) b.classList.add("selected");
-        const icons = {melee:'⚔️', range:'🏹', structure:'🏰', turret:'🛰️'};
-        b.innerHTML = `<img src="${u.sprite}" width="30"><br><small>${icons[u.type]}</small>`;
-        b.onclick = () => { selectedUnit = u; isEditingMap = false; updateButtons(); };
         g.appendChild(b);
     });
 }
-
-function adaptStats() {
-    const t = document.getElementById("unitType").value;
-    const s = document.getElementById("spd"), r = document.getElementById("rng"), rate = document.getElementById("rate");
-    if(t==='structure'){ s.value=0; r.value=0; rate.value=999; }
-    else if(t==='turret'){ s.value=0; r.value=200; rate.value=60; }
-    else if(t==='range'){ s.value=1; r.value=150; rate.value=80; }
-    else { s.value=1.2; r.value=40; rate.value=60; }
-}
-
-function saveAll() { localStorage.setItem('tabs_final_v4', JSON.stringify(baseUnits)); localStorage.setItem('tabs_sketches_v4', JSON.stringify(sketches)); }
-function openCreator() { editIndex = -1; document.getElementById("editorTitle").innerText = "Creador de Tropas"; document.getElementById("btnUpdate").style.display = "none"; document.getElementById("creatorPanel").style.display="block"; renderSketches(); }
-function openMapEditor() { document.getElementById("mapPanel").style.display="block"; }
-function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display="none"); isEditingMap=false; }
-function toggleMapEditing() { isEditingMap = !isEditingMap; document.getElementById("mapToggleBtn").style.background = isEditingMap ? "#dc3545" : "#ffae00"; }
-function clearMap() { mapObstacles = []; }
+function saveAll() { localStorage.setItem('tabs_final_v5', JSON.stringify(baseUnits)); localStorage.setItem('tabs_sketches_v5', JSON.stringify(sketches)); }
 function toggleTeam() { currentTeam = currentTeam==="blue"?"red":"blue"; document.getElementById("teamBtn").innerHTML = (currentTeam==="blue"?"🔵":"🔴")+"<small>Bando</small>"; }
-function startBattle() { battleStarted = true; isEditingMap = false; }
-function clearUnits() { units = []; projectiles = []; battleStarted = false; textosFlotantes = []; }
-function resetGrid() { pctx.clearRect(0,0,240,240); }
-function setTool(t) { currentTool = t; document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); event.currentTarget.classList.add('active'); }
+function startBattle() { battleStarted = true; }
+function clearUnits() { units = []; projectiles = []; battleStarted = false; }
+function toggleMapEditing() { isEditingMap = !isEditingMap; }
+function clearMap() { mapObstacles = []; }
 function saveSketch() { sketches.push(pCanvas.toDataURL()); renderSketches(); saveAll(); }
 function renderSketches() {
     const gal = document.getElementById("sketchGallery"); gal.innerHTML = "";
@@ -353,20 +339,25 @@ function renderSketches() {
         gal.appendChild(img);
     });
 }
-function borrarObjetivo() { if(objetivo.type === 'canvas') units = units.filter(u => u !== objetivo.data); else { baseUnits.splice(objetivo.index, 1); updateButtons(); } saveAll(); }
-function exportarObjetivo() { navigator.clipboard.writeText(JSON.stringify(objetivo.data)); alert("Copiado"); }
-function importarUnidadGlobal() { try { const n = JSON.parse(prompt("Código:")); baseUnits.push(n); updateButtons(); saveAll(); } catch(e) {} }
-
-pCanvas.onmousedown = () => drawing = true; window.onmouseup = () => drawing = false;
-pCanvas.onmousemove = (e) => {
-    if(!drawing) return;
-    const rect = pCanvas.getBoundingClientRect(), s = 15;
-    const x = Math.floor((e.clientX - rect.left) / s) * s, y = Math.floor((e.clientY - rect.top) / s) * s;
-    if(currentTool==='pen'){ pctx.fillStyle = document.getElementById("pixelColor").value; pctx.fillRect(x,y,s,s); }
-    else pctx.clearRect(x,y,s,s);
+window.oncontextmenu = (e) => {
+    e.preventDefault(); const rect = canvas.getBoundingClientRect();
+    const btn = e.target.closest('.unitBtn');
+    if(btn) { 
+        const id = Array.from(btn.parentNode.children).indexOf(btn);
+        objetivo = {type:'base', index: id, data: baseUnits[id]};
+        document.getElementById("contextMenu").style.display = "block";
+        document.getElementById("contextMenu").style.left = e.pageX + "px";
+        document.getElementById("contextMenu").style.top = e.pageY + "px";
+    }
 };
+function cargarEnEditor() {
+    const data = objetivo.data; editIndex = objetivo.index; openCreator();
+    document.getElementById("name").value = data.name; document.getElementById("btnUpdate").style.display = "block";
+    const img = new Image(); img.src = data.sprite; img.onload = () => { pctx.clearRect(0,0,240,240); pctx.drawImage(img,0,0,240,240); };
+}
+function borrarObjetivo() { baseUnits.splice(objetivo.index, 1); updateButtons(); saveAll(); }
 
-const su = localStorage.getItem('tabs_final_v4'), ss = localStorage.getItem('tabs_sketches_v4');
+const su = localStorage.getItem('tabs_final_v5'), ss = localStorage.getItem('tabs_sketches_v5');
 if(su) baseUnits = JSON.parse(su); if(ss) sketches = JSON.parse(ss);
 updateButtons();
 loop();
