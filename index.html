@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>TABS RPG - PERSISTENCE EDITION</title>
+    <title>TABS RPG - Projectiles & Particles</title>
     <style>
-        :root { --primary: #007bff; --accent: #6f42c1; --bg: #090909; --panel: #151515; --border: #333; --danger: #ff4444; --success: #28a745; --warning: #ffc107; --proj: #e67e22; }
+        :root { --primary: #007bff; --accent: #6f42c1; --bg: #090909; --panel: #151515; --border: #333; --danger: #ff4444; --success: #28a745; --warning: #ffc107; }
         body { margin: 0; background: var(--bg); color: white; font-family: 'Inter', sans-serif; display: flex; height: 100vh; overflow: hidden; }
         
         #leftPanel { width: 340px; background: var(--panel); padding: 15px; border-right: 1px solid var(--border); overflow-y: auto; z-index: 10; }
@@ -27,8 +27,8 @@
         .modal-content.small { width: 450px; }
 
         .editor-layout { display: grid; grid-template-columns: 420px 1fr; gap: 25px; }
-        canvas.pixel-canvas { image-rendering: pixelated; background-color: #1a1a1a; border: 2px solid #000; cursor: crosshair; }
         
+        canvas.pixel-canvas { image-rendering: pixelated; background-color: #1a1a1a; border: 2px solid #000; cursor: crosshair; }
         .tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 10px; }
         .tool-btn { background: #333; border: 1px solid #444; color: white; padding: 8px; cursor: pointer; border-radius: 4px; font-size: 14px; }
         .tool-btn.active { background: var(--primary); }
@@ -50,6 +50,10 @@
     <div class="context-item" onclick="deleteBaseUnit()" style="color:var(--danger)">🗑️ Borrar Permanente</div>
 </div>
 
+<div id="mapMenu" class="context-menu">
+    <div class="context-item" onclick="deleteFromMap()" style="color:var(--danger)">🗑️ Eliminar del Mapa</div>
+</div>
+
 <div id="leftPanel">
     <div class="section-title">Tropas y Estructuras</div>
     <div id="unitButtons" class="buttonGrid"></div>
@@ -62,24 +66,18 @@
         <button class="unitBtn" onclick="openCreator()" style="color:var(--primary)">➕ Nuevo</button>
     </div>
     <button class="btn-main" style="background:var(--accent); margin-top:10px;" onclick="openSkillModal()">⭐ CREAR SKILL</button>
-    <button class="btn-main" style="background:var(--proj); margin-top:5px;" onclick="openProjCreator()">🏹 CREAR PROYECTIL</button>
-    
-    <div class="section-title">Copia de Seguridad</div>
-    <button class="btn-main" style="background:#444;" onclick="downloadBackup()">📥 DESCARGAR BACKUP</button>
-    <button class="btn-main" style="background:#444;" onclick="document.getElementById('importInput').click()">📤 CARGAR BACKUP</button>
-    <input type="file" id="importInput" style="display:none" onchange="importBackup(this)">
-    
-    <button class="btn-main" style="background:var(--danger); margin-top:20px; font-size: 10px;" onclick="resetStorage()">⚠️ BORRAR TODO EL JUEGO</button>
+    <button class="btn-main" style="background:#444; margin-top:5px; font-size: 10px;" onclick="resetStorage()">⚠️ RESETEAR TODO</button>
 </div>
 
 <div id="gameContainer"><canvas id="game"></canvas></div>
 
 <div id="skillPanel" class="modal" onclick="event.stopPropagation()">
     <div class="modal-content small">
-        <h2>Advanced Skill Editor</h2>
-        <div style="background: #222; padding: 15px; border-radius: 8px;">
-            <label>Nombre</label><input type="text" id="skName">
-            <label>Trigger</label>
+        <h2 style="margin:0 0 15px 0; color:var(--accent)">Advanced Skill Editor</h2>
+        <div style="background: #222; padding: 15px; border-radius: 8px; border: 1px solid var(--accent);">
+            <label>Nombre de la Habilidad</label>
+            <input type="text" id="skName" placeholder="Ej: Nova Gélida">
+            <label style="margin-top:10px; display:block;">ACTIVADOR:</label>
             <select id="skTrigger">
                 <option value="attack">Al Atacar</option>
                 <option value="death">Al Morir</option>
@@ -87,47 +85,21 @@
                 <option value="hurt">Al Recibir Daño</option>
                 <option value="spawn">Al Aparecer</option>
             </select>
-            <label>Efecto</label>
+            <label style="margin-top:10px; display:block;">EFECTO:</label>
             <select id="skEffect">
-                <option value="damage">💥 Daño Área</option>
-                <option value="heal">💚 Curar Aliados</option>
+                <option value="damage">💥 Daño en Área</option>
+                <option value="heal">💚 Curación Aliada</option>
                 <option value="push">🚀 Empuje</option>
                 <option value="freeze">❄️ Congelar</option>
-                <option value="teleport">✨ Teleport</option>
-                <option value="vampire">🧛 Robo Vida</option>
+                <option value="teleport">✨ Teletransporte</option>
+                <option value="vampire">🧛 Robo de Vida</option>
             </select>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
                 <div><label>Potencia</label><input type="number" id="skPower" value="60"></div>
                 <div><label>Radio</label><input type="number" id="skRange" value="100"></div>
             </div>
             <button class="btn-main" style="background:var(--accent); margin-top:15px;" onclick="createSkill()">⭐ GUARDAR SKILL</button>
-            <button onclick="closeModals()" style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;">Cancelar</button>
-        </div>
-    </div>
-</div>
-
-<div id="projPanel" class="modal" onclick="event.stopPropagation()">
-    <div class="modal-content">
-        <div class="editor-layout">
-            <div>
-                <canvas id="pCanvas" class="pixel-canvas" width="384" height="384"></canvas>
-                <input type="color" id="pColor" value="#ff9900" style="width:100%; margin-top:10px;">
-            </div>
-            <div>
-                <h2 style="color:var(--proj)">Projectile Editor</h2>
-                <div class="stats-box">
-                    <div style="grid-column: span 2;"><label>Nombre</label><input id="pName" value="Flecha"></div>
-                    <div><label>Velocidad</label><input id="pSpeed" type="number" value="7"></div>
-                    <div><label>Tipo de Vuelo</label>
-                        <select id="pTypeBehavior">
-                            <option value="homing">Teledirigido</option>
-                            <option value="direct">Directo</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="btn-main" style="background:var(--proj); margin-top:20px;" onclick="saveProjectile()">💾 GUARDAR PROYECTIL</button>
-                <button onclick="closeModals()" style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;">Cerrar</button>
-            </div>
+            <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#555; cursor:pointer; margin-top:10px;">Cancelar</button>
         </div>
     </div>
 </div>
@@ -138,37 +110,43 @@
             <div>
                 <canvas id="uCanvas" class="pixel-canvas" width="384" height="384"></canvas>
                 <div class="tools">
-                    <button class="tool-btn active" onclick="setTool('pen', this, 'u')">✏️</button>
-                    <button class="tool-btn" onclick="setTool('line', this, 'u')">📏</button>
-                    <button class="tool-btn" onclick="setTool('rect', this, 'u')">⬜</button>
-                    <button class="tool-btn" onclick="setTool('circle', this, 'u')">⭕</button>
-                    <button class="tool-btn" onclick="setTool('eraser', this, 'u')">🧽</button>
-                    <button class="tool-btn" onclick="setTool('fill', this, 'u')">🎨</button>
+                    <button class="tool-btn active" onclick="setTool('pen', this)">✏️</button>
+                    <button class="tool-btn" onclick="setTool('line', this)">📏</button>
+                    <button class="tool-btn" onclick="setTool('rect', this)">⬜</button>
+                    <button class="tool-btn" onclick="setTool('circle', this)">⭕</button>
+                    <button class="tool-btn" onclick="setTool('eraser', this)">🧽</button>
+                    <button class="tool-btn" onclick="setTool('fill', this)">🎨</button>
+                    <button class="tool-btn" onclick="setTool('picker', this)">🧪</button>
                     <button class="tool-btn" onclick="toggleMirror(this)">🌓</button>
                 </div>
-                <input type="color" id="uColor" value="#3498db" style="width:100%; margin-top:10px;">
+                <input type="color" id="uColor" value="#3498db" style="width:100%; margin-top:10px; height:35px;">
                 <button class="btn-main" style="background:#444; margin-top:10px;" onclick="saveToGallery()">💾 GUARDAR BOCETO</button>
             </div>
             <div>
                 <h2 style="margin:0; color:var(--primary)">Configurar Entidad</h2>
                 <div class="stats-box">
-                    <div style="grid-column: span 2;"><label>Nombre</label><input id="uName"></div>
-                    <div><label>Tipo</label><select id="uType"><option value="melee">Melee</option><option value="range">Arquero</option><option value="turret">Torreta</option></select></div>
+                    <div style="grid-column: span 2;"><label>Nombre</label><input id="uName" value="Unidad"></div>
+                    <div><label>Tipo</label><select id="uType"><option value="melee">Melee</option><option value="range">Arquero</option><option value="turret">Torreta</option><option value="structure">Muro</option></select></div>
                     <div><label>Skill</label><select id="uSkillSelect"></select></div>
-                    <div><label>🏹 Proyectil</label><select id="uProjSelect"></select></div>
-                    <div class="section-title" style="grid-column: span 2;">Combate</div>
-                    <div><label>❤️ HP</label><input id="uHp" type="number" value="100"></div>
-                    <div><label>⚔️ Daño</label><input id="uAtk" type="number" value="15"></div>
-                    <div><label>🛡️ Def</label><input id="uDef" type="number" value="0"></div>
-                    <div><label>⏱️ Atk Spd</label><input id="uAtkSpd" type="number" value="60"></div>
-                    <div class="section-title" style="grid-column: span 2;">Físicas</div>
-                    <div><label>🏃 Spd</label><input id="uSpd" type="number" value="1.5" step="0.1"></div>
-                    <div><label>📏 Size</label><input id="uSize" type="number" value="40"></div>
+                    <div class="section-title" style="grid-column: span 2;">Combate Básico</div>
+                    <div><label>❤️ HP Max</label><input id="uHp" type="number" value="100"></div>
+                    <div><label>🛡️ Defensa</label><input id="uDef" type="number" value="0"></div>
+                    <div><label>⚔️ Ataque</label><input id="uAtk" type="number" value="15"></div>
+                    <div><label>⏱️ Atk Spd (FPS)</label><input id="uAtkSpd" type="number" value="60"></div>
+                    <div class="section-title" style="grid-column: span 2;">Movimiento y Físicas</div>
+                    <div><label>🏃 Speed</label><input id="uSpd" type="number" value="1.5" step="0.1"></div>
+                    <div><label>📏 Size</label><input id="uSize" type="number" value="40" step="5"></div>
+                    <div><label>🔄 Resistencia Empuje</label><input id="uRes" type="number" value="0" step="0.1"></div>
+                    <div class="section-title" style="grid-column: span 2;">Especiales</div>
+                    <div><label>🎯 % Crit</label><input id="uCrit" type="number" value="5"></div>
+                    <div><label>🩸 % Lifesteal</label><input id="uLifeS" type="number" value="0"></div>
+                </div>
+                <div style="margin-top:15px; display: grid; gap: 10px;">
+                    <button id="saveMainBtn" class="btn-main" onclick="saveUnit(false)" style="background:var(--success)">GUARDAR ENTIDAD</button>
+                    <button id="updateBtn" class="btn-main" onclick="saveUnit(true)" style="background:var(--primary); display:none;">ACTUALIZAR EXISTENTE</button>
                 </div>
                 <div id="uGallery" class="gallery-grid"></div>
-                <button id="saveMainBtn" class="btn-main" onclick="saveUnit(false)" style="background:var(--success); margin-top:10px;">GUARDAR ENTIDAD</button>
-                <button id="updateBtn" class="btn-main" onclick="saveUnit(true)" style="background:var(--primary); display:none;">ACTUALIZAR</button>
-                <button onclick="closeModals()" style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;">Cerrar sin guardar</button>
+                <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#555; cursor:pointer; margin-top:10px;">Cerrar Editor</button>
             </div>
         </div>
     </div>
@@ -176,128 +154,156 @@
 
 <script>
 const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
-let baseUnits = [], unitsOnMap = [], customSkills = [], customProjectiles = [], projectiles = [], particles = [], drawingGallery = [];
-let selectedUnit = null, currentTeam = "blue", battleStarted = false, drawing = false;
-let currentTool = 'pen', isMirror = false, pSize = 24, editingIndex = -1, rightClickedBaseIndex = -1;
+let baseUnits = [], unitsOnMap = [], customSkills = [], drawingGallery = [], projectiles = [], particles = [];
+let selectedUnit = null, currentTeam = "blue", battleStarted = false;
+let editingIndex = -1, rightClickedBaseIndex = -1, rightClickedMapEntity = null;
 
-// --- SISTEMA DE PERSISTENCIA DEFINITIVA ---
 function saveToLocalStorage() {
-    const gameState = {
-        units: baseUnits,
-        skills: customSkills,
-        projs: customProjectiles,
-        gallery: drawingGallery
-    };
-    localStorage.setItem('TABS_RPG_DATA', JSON.stringify(gameState));
+    localStorage.setItem('tabs_baseUnits', JSON.stringify(baseUnits));
+    localStorage.setItem('tabs_skills', JSON.stringify(customSkills));
+    localStorage.setItem('tabs_gallery', JSON.stringify(drawingGallery));
 }
-
 function loadFromLocalStorage() {
-    const data = localStorage.getItem('TABS_RPG_DATA');
-    if (data) {
-        const parsed = JSON.parse(data);
-        baseUnits = parsed.units || [];
-        customSkills = parsed.skills || [];
-        customProjectiles = parsed.projs || [];
-        drawingGallery = parsed.gallery || [];
-        updateUI();
-        renderSelectors();
-        renderGallery();
+    const u = localStorage.getItem('tabs_baseUnits'), s = localStorage.getItem('tabs_skills'), g = localStorage.getItem('tabs_gallery');
+    if(u) baseUnits = JSON.parse(u); if(s) customSkills = JSON.parse(s); if(g) drawingGallery = JSON.parse(g);
+    updateUI(); renderSkills(); renderGallery();
+}
+function resetStorage() { if(confirm("¿Resetear todo?")) { localStorage.clear(); location.reload(); } }
+
+// --- SISTEMA DE PARTÍCULAS ---
+class Particle {
+    constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        this.vx = (Math.random() - 0.5) * 5; this.vy = (Math.random() - 0.5) * 5;
+        this.life = 1.0;
+    }
+    update() { this.x += this.vx; this.y += this.vy; this.life -= 0.02; }
+    draw() {
+        ctx.globalAlpha = this.life; ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, 4, 4); ctx.globalAlpha = 1;
     }
 }
 
-function downloadBackup() {
-    const data = localStorage.getItem('TABS_RPG_DATA');
-    if(!data) return alert("No hay datos para guardar");
-    const blob = new Blob([data], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'tabs_rpg_backup.json';
-    a.click();
+function createExplosion(x, y, color) {
+    for(let i=0; i<15; i++) particles.push(new Particle(x, y, color));
 }
 
-function importBackup(input) {
-    const file = input.files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        localStorage.setItem('TABS_RPG_DATA', e.target.result);
-        location.reload();
-    };
-    reader.readAsText(file);
-}
-
-function resetStorage() { 
-    if(confirm("¿ESTÁS SEGURO? Se borrarán todos tus dibujos, unidades y skills para siempre.")) { 
-        localStorage.clear(); 
-        location.reload(); 
-    } 
+// --- SISTEMA DE PROYECTILES ---
+class Projectile {
+    constructor(x, y, target, damage, team, crit, lifesteal, parent) {
+        this.x = x; this.y = y; this.target = target; this.damage = damage;
+        this.team = team; this.crit = crit; this.lifesteal = lifesteal; this.parent = parent;
+        this.speed = 6; this.dead = false;
+    }
+    update() {
+        if(this.target.dead) { this.dead = true; return; }
+        let dx = this.target.x - this.x, dy = this.target.y - this.y;
+        let dist = Math.hypot(dx, dy);
+        if(dist < 10) {
+            let finalDmg = this.damage;
+            if(Math.random()*100 < this.crit) finalDmg *= 2;
+            this.target.takeDamage(finalDmg);
+            if(this.lifesteal > 0) this.parent.curHp = Math.min(this.parent.hp, this.parent.curHp + (finalDmg * (this.lifesteal/100)));
+            this.dead = true;
+        } else {
+            this.x += (dx/dist) * this.speed; this.y += (dy/dist) * this.speed;
+        }
+    }
+    draw() {
+        ctx.fillStyle = this.team === "blue" ? "#00f" : "#f00";
+        ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill();
+    }
 }
 
 // --- MOTOR DIBUJO ---
-function setupAdvancedEditor(canvasId, colorId) {
-    const cv = document.getElementById(canvasId), cx = cv.getContext("2d");
-    let startX, startY;
-    cv.onmousedown = (e) => {
-        drawing = true; const r = cv.getBoundingClientRect();
-        startX = Math.floor((e.clientX-r.left)/(cv.width/16))* (cv.width/16);
-        startY = Math.floor((e.clientY-r.top)/(cv.height/16))* (cv.height/16);
-        if(currentTool==='pen') {
-            cx.fillStyle = document.getElementById(colorId).value;
-            cx.fillRect(startX, startY, cv.width/16, cv.height/16);
-            if(isMirror) cx.fillRect(cv.width-(startX+cv.width/16), startY, cv.width/16, cv.height/16);
-        }
-        if(currentTool==='fill') { cx.fillStyle = document.getElementById(colorId).value; cx.fillRect(0,0,cv.width,cv.height); }
-    };
-    cv.onmousemove = (e) => {
-        if(!drawing || currentTool !== 'pen' && currentTool !== 'eraser') return;
-        const r = cv.getBoundingClientRect();
-        const x = Math.floor((e.clientX-r.left)/(cv.width/16))* (cv.width/16);
-        const y = Math.floor((e.clientY-r.top)/(cv.height/16))* (cv.height/16);
-        cx.fillStyle = currentTool === 'eraser' ? 'rgba(0,0,0,0)' : document.getElementById(colorId).value;
-        if(currentTool === 'eraser') cx.clearRect(x,y,cv.width/16,cv.height/16);
-        else {
-            cx.fillRect(x,y,cv.width/16,cv.height/16);
-            if(isMirror) cx.fillRect(cv.width-(x+cv.width/16), y, cv.width/16, cv.height/16);
-        }
-    };
-    cv.onmouseup = (e) => {
-        if(!drawing) return;
-        const r = cv.getBoundingClientRect();
-        const endX = Math.floor((e.clientX-r.left)/(cv.width/16))* (cv.width/16);
-        const endY = Math.floor((e.clientY-r.top)/(cv.height/16))* (cv.height/16);
-        cx.fillStyle = document.getElementById(colorId).value;
-        if(currentTool === 'rect') cx.fillRect(startX, startY, endX-startX+cv.width/16, endY-startY+cv.width/16);
-        drawing = false;
-    };
+let currentTool = 'pen', isMirror = false, drawing = false, pSize = 24, startX, startY;
+const uCanvas = document.getElementById("uCanvas"), uCtx = uCanvas.getContext("2d");
+function drawEditorGrid() {
+    uCtx.strokeStyle = "rgba(255,255,255,0.05)"; uCtx.lineWidth = 1;
+    for(let i=0; i<=384; i+=pSize) {
+        uCtx.beginPath(); uCtx.moveTo(i,0); uCtx.lineTo(i,384); uCtx.stroke();
+        uCtx.beginPath(); uCtx.moveTo(0,i); uCtx.lineTo(384,i); uCtx.stroke();
+    }
 }
-setupAdvancedEditor("uCanvas", "uColor");
-setupAdvancedEditor("pCanvas", "pColor");
-
-// --- CLASES ---
-class Projectile {
-    constructor(x, y, target, data, team, parent) {
-        this.x = x; this.y = y; this.target = target; this.team = team; this.parent = parent;
-        this.img = new Image(); this.img.src = data.sprite;
-        this.speed = data.speed; this.behavior = data.behavior || "homing";
-        this.damage = parent.atk; this.dead = false;
-        let dx = target.x-x, dy = target.y-y; let dist = Math.hypot(dx,dy);
-        this.vx = (dx/dist)*this.speed; this.vy = (dy/dist)*this.speed; this.angle = Math.atan2(dy,dx);
+function getCoords(e) {
+    const r = uCanvas.getBoundingClientRect();
+    return { x: Math.floor(((e.clientX-r.left)*(384/r.width))/pSize)*pSize, y: Math.floor(((e.clientY-r.top)*(384/r.height))/pSize)*pSize };
+}
+uCanvas.onmousedown = (e) => {
+    drawing = true; const c = getCoords(e); startX = c.x; startY = c.y;
+    uCtx.fillStyle = document.getElementById("uColor").value;
+    if(currentTool === 'pen') { uCtx.fillRect(c.x, c.y, pSize, pSize); if(isMirror) uCtx.fillRect(384-c.x-pSize, c.y, pSize, pSize); }
+    if(currentTool === 'eraser') uCtx.clearRect(c.x, c.y, pSize, pSize);
+    if(currentTool === 'fill') uCtx.fillRect(0,0,384,384);
+    if(currentTool === 'picker') {
+        const d = uCtx.getImageData(c.x, c.y, 1, 1).data;
+        document.getElementById("uColor").value = "#" + ((1<<24)+(d[0]<<16)+(d[1]<<8)+d[2]).toString(16).slice(1);
     }
-    update() {
-        if(this.behavior==="homing"){
-            if(this.target.dead) { this.dead=true; return; }
-            let dx = this.target.x-this.x, dy = this.target.y-this.y; let d = Math.hypot(dx,dy);
-            this.angle = Math.atan2(dy,dx);
-            if(d<15){ this.target.takeDamage(this.damage); this.dead=true; }
-            else { this.x+=(dx/d)*this.speed; this.y+=(dy/d)*this.speed; }
-        } else {
-            this.x+=this.vx; this.y+=this.vy;
-            let target = unitsOnMap.find(u => u.team!==this.team && !u.dead && Math.hypot(u.x-this.x, u.y-this.y)<20);
-            if(target){ target.takeDamage(this.damage); this.dead=true; }
-            if(this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height) this.dead=true;
+};
+uCanvas.onmousemove = (e) => {
+    if(!drawing || (currentTool!=='pen' && currentTool!=='eraser')) return;
+    const c = getCoords(e); uCtx.fillStyle = document.getElementById("uColor").value;
+    if(currentTool === 'eraser') uCtx.clearRect(c.x, c.y, pSize, pSize);
+    else { uCtx.fillRect(c.x, c.y, pSize, pSize); if(isMirror) uCtx.fillRect(384-c.x-pSize, c.y, pSize, pSize); }
+};
+uCanvas.onmouseup = (e) => {
+    if(!drawing) return;
+    const c = getCoords(e); uCtx.fillStyle = document.getElementById("uColor").value;
+    if(currentTool === 'rect') uCtx.fillRect(startX, startY, c.x-startX+pSize, c.y-startY+pSize);
+    if(currentTool === 'line') {
+        let dist = Math.hypot(c.x-startX, c.y-startY);
+        for(let i=0; i<=dist; i+=pSize/2) {
+            let lx = startX + (c.x-startX)*(i/dist), ly = startY + (c.y-startY)*(i/dist);
+            uCtx.fillRect(Math.floor(lx/pSize)*pSize, Math.floor(ly/pSize)*pSize, pSize, pSize);
         }
     }
-    draw() { ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.angle); ctx.drawImage(this.img,-10,-10,20,20); ctx.restore(); }
+    if(currentTool === 'circle') {
+        let r = Math.hypot(c.x-startX, c.y-startY);
+        for(let x=0; x<384; x+=pSize) for(let y=0; y<384; y+=pSize) if(Math.hypot(x-startX, y-startY) <= r) uCtx.fillRect(x,y,pSize,pSize);
+    }
+    drawing = false;
+};
+
+function saveToGallery() { drawingGallery.push({ img: uCanvas.toDataURL() }); renderGallery(); saveToLocalStorage(); }
+function renderGallery() { document.getElementById("uGallery").innerHTML = drawingGallery.map((d, i) => `<div class="gallery-item" onclick="loadBoceto(${i})"><img src="${d.img}"></div>`).join(''); }
+function loadBoceto(i) { const img = new Image(); img.src = drawingGallery[i].img; img.onload = () => { uCtx.clearRect(0,0,384,384); uCtx.drawImage(img,0,0); drawEditorGrid(); } }
+function hideMenus() { document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none'); }
+window.oncontextmenu = (e) => {
+    e.preventDefault(); hideMenus();
+    const btn = e.target.closest('.unitBtn');
+    if (btn && btn.dataset.index !== undefined) {
+        rightClickedBaseIndex = parseInt(btn.dataset.index);
+        const menu = document.getElementById("unitMenu"); menu.style.display = "block"; menu.style.left = e.clientX + "px"; menu.style.top = e.clientY + "px";
+        return;
+    }
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX-r.left, my = e.clientY-r.top;
+    const target = unitsOnMap.find(u => Math.hypot(u.x-mx, u.y-my) < 25);
+    if(target) {
+        rightClickedMapEntity = target;
+        const menu = document.getElementById("mapMenu"); menu.style.display = "block"; menu.style.left = e.clientX + "px"; menu.style.top = e.clientY + "px";
+    }
+};
+
+function deleteBaseUnit() { baseUnits.splice(rightClickedBaseIndex, 1); updateUI(); saveToLocalStorage(); }
+function deleteFromMap() { unitsOnMap = unitsOnMap.filter(u => u !== rightClickedMapEntity); }
+function exportUnit() {
+    const data = JSON.stringify(baseUnits[rightClickedBaseIndex]);
+    const blob = new Blob([data], {type: "application/json"});
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${baseUnits[rightClickedBaseIndex].name}.json`; a.click();
+}
+function editUnit() {
+    const u = baseUnits[rightClickedBaseIndex]; editingIndex = rightClickedBaseIndex;
+    document.getElementById("uName").value = u.name; document.getElementById("uHp").value = u.hp;
+    document.getElementById("uAtk").value = u.atk; document.getElementById("uSpd").value = u.spd;
+    document.getElementById("uType").value = u.type; document.getElementById("uDef").value = u.def || 0;
+    document.getElementById("uAtkSpd").value = u.atkSpd || 60; document.getElementById("uSize").value = u.size || 40;
+    document.getElementById("uRes").value = u.res || 0; document.getElementById("uCrit").value = u.crit || 5;
+    document.getElementById("uLifeS").value = u.lifeS || 0;
+    document.getElementById("updateBtn").style.display = "block";
+    document.getElementById("saveMainBtn").innerText = "GUARDAR COMO NUEVO";
+    const img = new Image(); img.src = u.sprite; img.onload = () => { uCtx.clearRect(0,0,384,384); uCtx.drawImage(img,0,0); drawEditorGrid(); };
+    openCreator();
 }
 
 class Entity {
@@ -305,91 +311,74 @@ class Entity {
         Object.assign(this, data);
         this.x = x; this.y = y; this.team = team; this.curHp = this.hp;
         this.img = new Image(); this.img.src = this.sprite;
-        this.cool = 0; this.dead = false; this.flash = 0; this.frozen = 0;
+        this.cool = 0; this.flash = 0; this.dead = false; this.frozen = 0;
+        this.rng = (this.type==='melee')?45:(this.type==='range')?220:(this.type==='turret')?380:0;
+        this.size = this.size || 40;
         this.trigger('spawn');
     }
     takeDamage(amount) {
         if(this.dead) return;
-        let finalDmg = Math.max(1, amount - (this.def || 0));
-        this.curHp -= finalDmg; this.flash = 10;
-        this.trigger('hurt');
+        let realDamage = Math.max(1, amount - (this.def || 0));
+        this.curHp -= realDamage; this.flash = 10; this.trigger('hurt');
         if(this.curHp <= 0) { 
-            this.dead = true; this.trigger('death');
-            for(let i=0; i<12; i++) particles.push({x:this.x, y:this.y, vx:(Math.random()-0.5)*6, vy:(Math.random()-0.5)*6, l:1, c:this.team=="blue"?"#007bff":"#f00"});
+            this.dead = true; this.trigger('death'); 
+            createExplosion(this.x, this.y, this.team === "blue" ? "#007bff" : "#ff0000");
         }
     }
     trigger(type) {
         if (!this.skillId || this.skillId === "none") return;
         const sk = customSkills.find(s => s.id == this.skillId);
         if(!sk || sk.trigger !== type) return;
+        let areaRadius = sk.range || 100;
+        if(sk.effect === 'teleport') { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; }
         unitsOnMap.forEach(t => {
             if(!t || t.dead) return;
-            if(Math.hypot(t.x-this.x, t.y-this.y) < sk.range) {
+            if(Math.hypot(t.x-this.x, t.y-this.y) < areaRadius) {
                 if(t.team !== this.team) {
-                    if(sk.effect==='damage') t.takeDamage(sk.power);
-                    if(sk.effect==='push') { let a=Math.atan2(t.y-this.y, t.x-this.x); t.x+=Math.cos(a)*sk.power/5; t.y+=Math.sin(a)*sk.power/5; }
-                    if(sk.effect==='freeze') { t.frozen = 100; }
-                } else if(sk.effect==='heal') t.curHp = Math.min(t.hp, t.curHp + sk.power/2);
+                    if(sk.effect==='damage') t.takeDamage(sk.power || 0);
+                    if(sk.effect==='push') { const a=Math.atan2(t.y-this.y, t.x-this.x); const force = (sk.power || 10) * (1 - (t.res || 0)); t.x+=Math.cos(a)*force; t.y+=Math.sin(a)*force; }
+                    if(sk.effect==='freeze') t.frozen = 120;
+                } else if(sk.effect==='heal') t.curHp = Math.min(t.hp, t.curHp + ((sk.power || 0)/2));
             }
         });
-        if(type==='contact') this.takeDamage(999);
+        if(sk.effect === 'vampire' && type === 'attack') this.curHp = Math.min(this.hp, this.curHp + 5);
+        this.flash = 15; if(type==='contact') this.takeDamage(9999);
     }
     update() {
-        if(!battleStarted || this.dead) return;
+        if(!battleStarted || this.dead || this.type==='structure') return;
         if(this.frozen > 0) { this.frozen--; return; }
-        let enemies = unitsOnMap.filter(u => u.team !== this.team && !u.dead);
+        let enemies = unitsOnMap.filter(u => u && u.team !== this.team && !u.dead);
         if(!enemies.length) return;
         let target = enemies.reduce((p, c) => Math.hypot(c.x-this.x, c.y-this.y) < Math.hypot(p.x-this.x, p.y-this.y) ? c : p);
         let d = Math.hypot(target.x-this.x, target.y-this.y);
-        let range = this.type === 'melee' ? 45 : 280;
-        if(d > range) { this.x += (target.x-this.x)/d * this.spd; this.y += (target.y-this.y)/d * this.spd; if(d<30) this.trigger('contact'); }
-        else if(this.cool <= 0) {
+        if(this.type!=='turret' && d > this.rng) { this.x += (target.x-this.x)/d * this.spd; this.y += (target.y-this.y)/d * this.spd; if(d < 30) this.trigger('contact'); }
+        if(this.atk > 0 && d <= this.rng && this.cool <= 0) { 
             this.trigger('attack');
-            if(this.type === 'melee') target.takeDamage(this.atk);
-            else {
-                let pData = customProjectiles.find(p => p.id == this.projId) || {sprite: "", speed: 5, behavior: "homing"};
-                projectiles.push(new Projectile(this.x, this.y, target, pData, this.team, this));
+            if(this.type === 'range' || this.type === 'turret') {
+                projectiles.push(new Projectile(this.x, this.y, target, this.atk, this.team, this.crit, this.lifeS, this));
+            } else {
+                let dmg = this.atk; if(Math.random()*100 < (this.crit || 0)) dmg *= 2;
+                target.takeDamage(dmg);
+                if(this.lifeS > 0) this.curHp = Math.min(this.hp, this.curHp + (dmg * (this.lifeS/100)));
             }
-            this.cool = this.atkSpd || 60;
+            this.cool = this.atkSpd || 60; this.flash = 10; 
         }
         if(this.cool > 0) this.cool--; if(this.flash > 0) this.flash--;
     }
     draw() {
         ctx.save(); ctx.translate(this.x, this.y); if(this.team === "red") ctx.scale(-1, 1);
         if(this.flash > 0) ctx.filter = "brightness(3)";
+        if(this.frozen > 0) ctx.filter = "hue-rotate(180deg) brightness(1.5)";
         ctx.drawImage(this.img, -this.size/2, -this.size/2, this.size, this.size); ctx.restore();
-        if(!this.dead) { ctx.fillStyle = "red"; ctx.fillRect(this.x-15, this.y-this.size/2-10, 30*(this.curHp/this.hp), 4); }
+        if(!this.dead) { ctx.fillStyle = this.team === "blue"?"#007bff":"#f00"; ctx.fillRect(this.x-15, this.y-(this.size/2 + 5), 30*(Math.max(0, this.curHp)/this.hp), 3); }
     }
 }
 
-// --- LOGICA UI ---
 function saveUnit(isUpdate) {
-    const data = {
-        name: document.getElementById("uName").value,
-        sprite: document.getElementById("uCanvas").toDataURL(),
-        type: document.getElementById("uType").value,
-        hp: +document.getElementById("uHp").value,
-        atk: +document.getElementById("uAtk").value,
-        def: +document.getElementById("uDef").value,
-        atkSpd: +document.getElementById("uAtkSpd").value,
-        spd: +document.getElementById("uSpd").value,
-        size: +document.getElementById("uSize").value,
-        projId: document.getElementById("uProjSelect").value,
-        skillId: document.getElementById("uSkillSelect").value
-    };
+    const data = { name: document.getElementById("uName").value, sprite: uCanvas.toDataURL(), type: document.getElementById("uType").value, hp: +document.getElementById("uHp").value, atk: +document.getElementById("uAtk").value, spd: +document.getElementById("uSpd").value, skillId: document.getElementById("uSkillSelect").value, def: +document.getElementById("uDef").value, atkSpd: +document.getElementById("uAtkSpd").value, size: +document.getElementById("uSize").value, res: +document.getElementById("uRes").value, crit: +document.getElementById("uCrit").value, lifeS: +document.getElementById("uLifeS").value };
     if(isUpdate && editingIndex > -1) baseUnits[editingIndex] = data; else baseUnits.push(data);
     updateUI(); closeModals(); saveToLocalStorage();
 }
-function saveProjectile() {
-    customProjectiles.push({ id: Date.now(), name: document.getElementById("pName").value, sprite: document.getElementById("pCanvas").toDataURL(), speed: +document.getElementById("pSpeed").value, behavior: document.getElementById("pTypeBehavior").value });
-    renderSelectors(); closeModals(); saveToLocalStorage();
-}
-function createSkill() {
-    customSkills.push({ id: Date.now(), name: document.getElementById("skName").value, trigger: document.getElementById("skTrigger").value, effect: document.getElementById("skEffect").value, power: +document.getElementById("skPower").value, range: +document.getElementById("skRange").value });
-    renderSelectors(); closeModals(); saveToLocalStorage();
-}
-function saveToGallery() { drawingGallery.push({ img: document.getElementById("uCanvas").toDataURL() }); renderGallery(); saveToLocalStorage(); }
-
 function updateUI() {
     const ub = document.getElementById("unitButtons"); ub.innerHTML = "";
     baseUnits.forEach((u, i) => {
@@ -398,76 +387,46 @@ function updateUI() {
         ub.appendChild(b);
     });
 }
-function renderSelectors() {
-    const ps = document.getElementById("uProjSelect"), ss = document.getElementById("uSkillSelect");
-    ps.innerHTML = '<option value="none">Sin Proyectil</option>'; ss.innerHTML = '<option value="none">Sin Skill</option>';
-    customProjectiles.forEach(p => ps.innerHTML += `<option value="${p.id}">${p.name}</option>`);
-    customSkills.forEach(s => ss.innerHTML += `<option value="${s.id}">${s.name}</option>`);
-}
-function renderGallery() { document.getElementById("uGallery").innerHTML = drawingGallery.map((d, i) => `<div class="gallery-item" onclick="loadBoceto(${i})"><img src="${d.img}"></div>`).join(''); }
-function loadBoceto(i) { const img = new Image(); img.src = drawingGallery[i].img; img.onload = () => { const cx = document.getElementById("uCanvas").getContext("2d"); cx.clearRect(0,0,384,384); cx.drawImage(img,0,0); } }
-
-// --- CONTEXT MENU ---
-window.oncontextmenu = (e) => {
-    e.preventDefault(); const btn = e.target.closest('.unitBtn');
-    if(btn) {
-        rightClickedBaseIndex = +btn.dataset.index;
-        const m = document.getElementById("unitMenu"); m.style.display="block"; m.style.left=e.clientX+"px"; m.style.top=e.clientY+"px";
-    }
-};
-function hideMenus() { document.querySelectorAll('.context-menu').forEach(m => m.style.display='none'); }
-function editUnit() {
-    const u = baseUnits[rightClickedBaseIndex]; editingIndex = rightClickedBaseIndex;
-    document.getElementById("uName").value = u.name; 
-    document.getElementById("uHp").value = u.hp;
-    document.getElementById("uAtk").value = u.atk;
-    document.getElementById("uType").value = u.type;
-    document.getElementById("uProjSelect").value = u.projId;
-    document.getElementById("uSkillSelect").value = u.skillId;
-    document.getElementById("updateBtn").style.display="block"; openCreator();
-    const img = new Image(); img.src = u.sprite; img.onload = () => {
-        const ctxU = document.getElementById("uCanvas").getContext("2d");
-        ctxU.clearRect(0,0,384,384); ctxU.drawImage(img,0,0);
-    };
-}
-function deleteBaseUnit() { baseUnits.splice(rightClickedBaseIndex,1); updateUI(); saveToLocalStorage(); }
-function exportUnit() {
-    const data = JSON.stringify(baseUnits[rightClickedBaseIndex]);
-    const blob = new Blob([data], {type: "application/json"});
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${baseUnits[rightClickedBaseIndex].name}.json`; a.click();
-}
-
-// --- LOOP ---
 function loop() {
     ctx.fillStyle = "#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
-    unitsOnMap.forEach(u => { u.update(); u.draw(); });
-    projectiles.forEach((p, i) => { p.update(); p.draw(); if(p.dead) projectiles.splice(i, 1); });
-    particles.forEach((p, i) => { p.x+=p.vx; p.y+=p.vy; p.l-=0.02; ctx.globalAlpha = p.l; ctx.fillStyle = p.c; ctx.fillRect(p.x, p.y, 3, 3); if(p.l <= 0) particles.splice(i, 1); });
-    ctx.globalAlpha = 1; unitsOnMap = unitsOnMap.filter(u => !u.dead); requestAnimationFrame(loop);
+    // Grid
+    ctx.strokeStyle = "rgba(255,255,255,0.03)";
+    for(let x=0; x<canvas.width; x+=50) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+    for(let y=0; y<canvas.height; y+=50) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+    
+    unitsOnMap.forEach(u => { if(u) { u.update(); u.draw(); } });
+    projectiles.forEach(p => { p.update(); p.draw(); });
+    particles.forEach(p => { p.update(); p.draw(); });
+    
+    unitsOnMap = unitsOnMap.filter(u => u && !u.dead);
+    projectiles = projectiles.filter(p => !p.dead);
+    particles = particles.filter(p => p.life > 0);
+    
+    requestAnimationFrame(loop);
 }
 
 canvas.onclick = (e) => {
-    if(!battleStarted && selectedUnit) {
+    if(e.button===0 && !battleStarted && selectedUnit) {
         const r = canvas.getBoundingClientRect();
-        unitsOnMap.push(new Entity(e.clientX-r.left, e.clientY-r.top, currentTeam, selectedUnit));
+        let posX = e.clientX-r.left, posY = e.clientY-r.top;
+        if(selectedUnit.type === 'turret' || selectedUnit.type === 'structure') {
+            posX = Math.floor(posX / 50) * 50 + 25; posY = Math.floor(posY / 50) * 50 + 25;
+        }
+        unitsOnMap.push(new Entity(posX, posY, currentTeam, selectedUnit));
     }
 };
 
+function createSkill() { customSkills.push({ id: Date.now(), name: document.getElementById("skName").value, trigger: document.getElementById("skTrigger").value, effect: document.getElementById("skEffect").value, power: +document.getElementById("skPower").value, range: +document.getElementById("skRange").value }); renderSkills(); closeModals(); saveToLocalStorage(); }
+function renderSkills() { const s = document.getElementById("uSkillSelect"); s.innerHTML = '<option value="none">Sin Skill</option>'; customSkills.forEach(sk => s.innerHTML += `<option value="${sk.id}">${sk.name}</option>`); }
 function setTool(t, b) { currentTool = t; document.querySelectorAll('.tool-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); }
 function toggleMirror(b) { isMirror = !isMirror; b.classList.toggle('active'); }
-function openCreator() { document.getElementById("creatorPanel").style.display="block"; }
-function openProjCreator() { document.getElementById("projPanel").style.display="block"; }
+function openCreator() { document.getElementById("creatorPanel").style.display="block"; drawEditorGrid(); renderSkills(); }
 function openSkillModal() { document.getElementById("skillPanel").style.display="block"; }
-function closeModals() { document.querySelectorAll(".modal").forEach(m => m.style.display="none"); editingIndex = -1; document.getElementById("updateBtn").style.display="none"; }
+function closeModals() { document.getElementById("creatorPanel").style.display="none"; document.getElementById("skillPanel").style.display="none"; editingIndex = -1; uCtx.clearRect(0,0,384,384); document.getElementById("updateBtn").style.display = "none"; document.getElementById("saveMainBtn").innerText = "GUARDAR ENTIDAD"; }
 function toggleTeam() { currentTeam = currentTeam === "blue" ? "red" : "blue"; document.getElementById("teamBtn").innerText = currentTeam === "blue" ? "🔵 Equipo" : "🔴 Equipo"; }
 function startBattle() { battleStarted = true; }
 function clearUnits() { unitsOnMap = []; projectiles = []; particles = []; battleStarted = false; }
-
-window.onload = () => { 
-    canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; 
-    loadFromLocalStorage(); // CARGA AUTOMÁTICA AL INICIAR
-    loop(); 
-};
+window.onload = () => { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; loadFromLocalStorage(); loop(); };
 </script>
 </body>
 </html>
