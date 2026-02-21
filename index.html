@@ -2,365 +2,403 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>TABS RPG Ultra - Pro Drawing Edition</title>
+    <title>TABS RPG Ultra - Pro Edition</title>
     <style>
-        body { margin: 0; background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        #leftPanel { width: 320px; background: #151515; padding: 15px; box-sizing: border-box; border-right: 2px solid #333; overflow-y: auto; }
-        .section-title { font-size: 11px; text-transform: uppercase; color: #007bff; margin: 15px 0 10px 0; border-bottom: 1px solid #333; letter-spacing: 1px; font-weight: bold; }
-        .buttonGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .unitBtn, .controlBtn { background: #222; border: 1px solid #444; border-radius: 8px; cursor: pointer; padding: 5px; height: 65px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: 0.2s; position: relative; }
-        .unitBtn.selected { border-color: #00ff00; background: #1a2e1a; }
-        #gameContainer { flex: 1; position: relative; background: #111; cursor: crosshair; }
-        canvas#game { display: block; width: 100%; height: 100%; }
-        
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1b1b1b; padding: 20px; display: none; border: 2px solid #444; z-index: 100; border-radius: 12px; box-shadow: 0 0 50px black; color: white; }
-        #creatorPanel { width: 950px; max-height: 95vh; overflow-y: auto; }
-        .editor-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
-        
-        /* Formulario */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        label { font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: bold; display: block; margin-top: 5px; }
-        input, select { background: #111; border: 1px solid #444; color: #0f0; padding: 6px; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 13px; }
-        
-        /* Herramientas de dibujo */
-        .paint-tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 10px 0; }
-        .tool-btn { background: #333; border: 1px solid #555; color: white; padding: 8px; cursor: pointer; border-radius: 4px; font-size: 14px; text-align: center; }
-        .tool-btn.active { background: #007bff; border-color: #fff; }
-        .tool-btn:hover { background: #444; }
-        
-        .move-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 5px; }
-        .move-btn { background: #222; border: 1px solid #444; color: white; cursor: pointer; padding: 5px; border-radius: 4px; }
+        :root { 
+            --primary: #007bff; --accent: #6f42c1; --bg: #090909; 
+            --panel: #151515; --border: #333; --danger: #ff4444; --success: #28a745;
+        }
 
-        #pixelCanvas { border: 2px solid #555; background: #eee; image-rendering: pixelated; display: block; margin: 0 auto; cursor: crosshair; }
-        .mainAction { background: #28a745; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Inter', sans-serif; display: flex; height: 100vh; overflow: hidden; }
         
-        #contextMenu { display: none; position: absolute; background: #1b1b1b; border: 1px solid #444; border-radius: 6px; z-index: 2000; min-width: 170px; }
-        .context-item { padding: 10px 15px; font-size: 13px; cursor: pointer; color: #ddd; border-bottom: 1px solid #333; }
-        .context-item:hover { background: #007bff; color: white; }
-        .sketch-gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; max-height: 80px; overflow-y: auto; background: #111; padding: 5px; border: 1px solid #333; }
-        .sketch-item { border: 1px solid #444; cursor: pointer; width: 100%; }
+        #leftPanel { width: 320px; background: var(--panel); padding: 15px; border-right: 1px solid var(--border); overflow-y: auto; z-index: 10; }
+        .section-title { font-size: 10px; text-transform: uppercase; color: var(--primary); margin: 15px 0 8px 0; border-bottom: 1px solid var(--border); letter-spacing: 1px; font-weight: bold; padding-bottom: 3px; }
+        
+        .buttonGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .unitBtn, .tileBtn { background: #222; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; height: 65px; display: flex; align-items: center; justify-content: center; transition: 0.2s; padding: 5px; overflow: hidden; position: relative; }
+        .unitBtn img, .tileBtn img { image-rendering: pixelated; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .selected { border-color: var(--success) !important; background: rgba(40, 167, 69, 0.2) !important; }
+        
+        #gameContainer { flex: 1; position: relative; background: #000; }
+        canvas#game { display: block; width: 100%; height: 100%; }
+
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; z-index: 1000; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #181818; padding: 25px; border: 1px solid var(--border); border-radius: 12px; width: 950px; cursor: default; }
+        .editor-layout { display: grid; grid-template-columns: 420px 1fr; gap: 25px; }
+
+        canvas.pixel-canvas { 
+            image-rendering: pixelated; background-color: #1a1a1a;
+            border: 2px solid #000; display: block; margin: 0 auto; cursor: crosshair; 
+        }
+
+        .tools { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 10px; }
+        .tool-btn { background: #333; border: 1px solid #444; color: white; padding: 10px; cursor: pointer; border-radius: 4px; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        .tool-btn.active { background: var(--primary); border-color: white; }
+
+        .stats-box { background: #222; padding: 15px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        input, select { background: #000; border: 1px solid #444; color: #0f0; padding: 8px; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        .btn-main { color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        
+        /* EL MENÚ CONTEXTUAL */
+        #contextMenu { 
+            display: none; 
+            position: absolute; 
+            background: #202020; 
+            border: 1px solid var(--border); 
+            z-index: 2000; 
+            min-width: 180px; 
+            border-radius: 8px; 
+            padding: 5px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+        }
+        .context-item { padding: 10px 15px; cursor: pointer; font-size: 13px; border-radius: 4px; color: #ccc; }
+        .context-item:hover { background: var(--primary); color: white; }
+
+        .res-selector { display: flex; gap: 10px; margin-bottom: 10px; }
+        .res-btn { flex: 1; padding: 5px; background: #333; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; font-size: 10px; }
+        .res-btn.active { background: var(--accent); border-color: white; }
+
+        .gallery-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; max-height: 120px; overflow-y: auto; background: #111; padding: 10px; border-radius: 8px; margin-top: 10px; }
+        .gallery-item { position: relative; border: 1px solid #444; height: 50px; cursor: pointer; background: #222; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+        .btn-del-mini { position: absolute; top: -5px; right: -5px; background: var(--danger); border: none; border-radius: 50%; color: white; width: 18px; height: 18px; cursor: pointer; font-size: 10px; }
     </style>
 </head>
 <body>
 
 <div id="leftPanel">
-    <div class="section-title">Ejército</div>
+    <div class="section-title">Tropas (Click Derecho para opciones)</div>
     <div id="unitButtons" class="buttonGrid"></div>
-    <div class="section-title">Controles Globales</div>
+    <div class="section-title">Terrenos</div>
+    <div id="tileLibrary" class="buttonGrid" style="grid-template-columns: repeat(5,1fr)"></div>
+    <button class="btn-main" style="background:var(--accent); font-size:11px" onclick="openTileEditor()">🎨 NUEVO TILESET</button>
+    <button class="btn-main" style="background:var(--primary); font-size:11px" onclick="importUnit()">📥 IMPORTAR TROPA</button>
+    
+    <div class="section-title">Simulación</div>
     <div class="buttonGrid">
-        <button class="controlBtn" onclick="toggleTeam()" id="teamBtn">🔵<small>Bando</small></button>
-        <button class="controlBtn" onclick="startBattle()" style="color:#0f0">▶<small>Play</small></button>
-        <button class="controlBtn" onclick="clearUnits()">🗑<small>Reset</small></button>
-        <button class="controlBtn" onclick="openCreator()" style="color:#f0f">➕<small>Editor</small></button>
-        <button class="controlBtn" onclick="openMapEditor()" style="color:#ffae00">🗺️<small>Mapa</small></button>
-        <button class="controlBtn" onclick="importarUnidadGlobal()">📥<small>Import</small></button>
+        <button class="unitBtn" onclick="toggleTeam()" id="teamBtn">🔵<br><small>Bando</small></button>
+        <button class="unitBtn" onclick="startBattle()" style="color:var(--success)">▶<br><small>Play</small></button>
+        <button class="unitBtn" onclick="clearUnits()" style="color:var(--danger)">🗑<br><small>Reset</small></button>
+        <button class="unitBtn" onclick="openCreator()" style="color:var(--primary)">➕<br><small>Unidad</small></button>
     </div>
 </div>
 
 <div id="gameContainer"><canvas id="game"></canvas></div>
 
 <div id="contextMenu">
-    <div class="context-item" id="ctxEdit" onclick="cargarEnEditor()">✏️ Editar en Creador</div>
-    <div class="context-item" onclick="exportarObjetivo()">📤 Exportar Código</div>
-    <div class="context-item" style="color:#ff4444" onclick="borrarObjetivo()">🗑️ Borrar</div>
+    <div class="context-item" onclick="editCurrent()">✏️ Editar</div>
+    <div class="context-item" onclick="exportCurrent()">💾 Exportar (.json)</div>
+    <div class="context-item" onclick="deleteCurrent()" style="color:var(--danger)">🗑️ Eliminar</div>
 </div>
 
 <div id="creatorPanel" class="modal">
-    <h2 id="editorTitle" style="margin:0; text-align:center; color:#007bff">Editor Pro Art</h2>
-    <div class="editor-layout">
-        <div>
-            <canvas id="pixelCanvas" width="240" height="240"></canvas>
-            
-            <div class="paint-tools">
-                <button class="tool-btn active" title="Lápiz" onclick="setTool('pen')">✏️</button>
-                <button class="tool-btn" title="Borrador" onclick="setTool('eraser')">🧽</button>
-                <button class="tool-btn" title="Bote de Pintura" onclick="setTool('fill')">🪣</button>
-                <button class="tool-btn" title="Cuentagotas" onclick="setTool('picker')">👁️</button>
-                <button class="tool-btn" id="mirrorBtn" title="Simetría" onclick="toggleMirror()">🌓</button>
-            </div>
-            
-            <input type="color" id="pixelColor" value="#ff0000" style="width:100%; height:30px; border:none; padding:0; cursor:pointer; background:none;">
-
-            <div class="move-tools">
-                <button class="move-btn" onclick="movePixels(0,-1)">⬆️</button>
-                <button class="move-btn" onclick="movePixels(0,1)">⬇️</button>
-                <button class="move-btn" onclick="movePixels(-1,0)">⬅️</button>
-                <button class="move-btn" onclick="movePixels(1,0)">➡️</button>
-                <button class="move-btn" style="grid-column: span 2; background:#633" onclick="resetGrid()">🧹 Limpiar</button>
-                <button class="move-btn" style="grid-column: span 2; background:#6f42c1" onclick="saveSketch()">💾 Boceto</button>
-            </div>
-            
-            <div id="sketchGallery" class="sketch-gallery"></div>
-        </div>
-
-        <div>
-            <div class="stats-grid">
-                <div style="grid-column: span 2;">
-                    <label>Nombre</label><input id="name" value="Nuevo Guerrero">
-                    <label>Clase</label>
-                    <select id="unitType" onchange="adaptStats()">
-                        <option value="melee">⚔️ Melee</option>
-                        <option value="range">🏹 Rango</option>
-                        <option value="structure">🏰 Muro</option>
-                        <option value="turret">🛰️ Torreta</option>
-                    </select>
+    <div class="modal-content">
+        <div class="editor-layout">
+            <div>
+                <div class="res-selector">
+                    <button class="res-btn active" onclick="setRes(16, this)">16x16</button>
+                    <button class="res-btn" onclick="setRes(32, this)">32x32</button>
                 </div>
-                <div>
-                    <label>❤️ Vida</label><input id="hp" type="number" value="100">
-                    <label>⚔️ Ataque</label><input id="atk" type="number" value="15">
-                    <label>🛡️ Armadura</label><input id="def" type="number" value="0">
-                    <label>🏃 Velocidad</label><input id="spd" type="number" value="1.2" step="0.1">
-                </div>
-                <div>
-                    <label>🎯 Rango</label><input id="rng" type="number" value="40">
-                    <label>⚡ Cadencia</label><input id="rate" type="number" value="60">
-                    <label>💥 % Crítico</label><input id="crit" type="number" value="10">
-                    <label>🧛 % Robo</label><input id="lifesteal" type="number" value="0">
-                </div>
+                <canvas id="uCanvas" class="pixel-canvas" width="384" height="384"></canvas>
+                <div class="tools" id="uTools"></div>
+                <input type="color" id="uColor" value="#3498db" style="width:100%; height:30px; margin-top:10px; border:none;">
+                <button class="btn-main" style="background:#444; font-size:11px;" onclick="saveToGallery()">💾 GUARDAR EN GALERÍA</button>
             </div>
-
-            <button class="mainAction" id="btnUpdate" onclick="saveUnit(true)">ACTUALIZAR EXISTENTE</button>
-            <button class="mainAction" id="btnSaveNew" onclick="saveUnit(false)" style="background:#007bff">GUARDAR COMO NUEVO</button>
-            <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#777; cursor:pointer; margin-top:5px;">Cancelar</button>
+            <div>
+                <h2 style="margin:0; color:var(--primary)">Editor Pro</h2>
+                <div class="stats-box">
+                    <div style="grid-column: span 2;"><label>Nombre</label><input id="uName" value="Soldado"></div>
+                    <div><label>Tipo</label>
+                        <select id="uType" onchange="autoAdjustRange()">
+                            <option value="melee">Melee</option>
+                            <option value="range">Rango</option>
+                            <option value="turret">Torre (Fija)</option>
+                            <option value="structure">Estructura</option>
+                        </select>
+                    </div>
+                    <div><label>Skill</label><select id="uSkill"></select></div>
+                    <div><label>❤️ HP</label><input id="uHp" type="number" value="100"></div>
+                    <div><label>⚔️ ATK</label><input id="uAtk" type="number" value="15"></div>
+                    <div><label>🏃 SPD</label><input id="uSpd" type="number" value="1.5" step="0.1"></div>
+                    <div><label>🎯 RNG</label><input id="uRng" type="number" value="40" readonly></div>
+                </div>
+                <button class="btn-main" id="updateBtn" onclick="saveUnit(true)" style="display:none; background:var(--primary)">ACTUALIZAR</button>
+                <button class="btn-main" id="saveNewBtn" onclick="saveUnit(false)" style="background:var(--success)">CREAR UNIDAD</button>
+                <div id="uGallery" class="gallery-grid"></div>
+                <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#555; cursor:pointer; margin-top:10px">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="mapPanel" class="modal">
-    <h2 style="text-align:center; color:#ffae00">Mapa</h2>
-    <button id="mapToggleBtn" class="mainAction" style="background:#ffae00" onclick="toggleMapEditing()">ACTIVAR MODO MUROS</button>
-    <button class="mainAction" style="background:#444" onclick="clearMap()">BORRAR TODO EL MAPA</button>
-    <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#777; cursor:pointer; margin-top:15px;">Salir</button>
+<div id="tileModal" class="modal">
+    <div class="modal-content">
+        <div class="editor-layout">
+            <div>
+                <canvas id="tCanvas" class="pixel-canvas" width="256" height="256"></canvas>
+                <div class="tools" id="tTools"></div>
+                <input type="color" id="tColor" value="#44aa44" style="width:100%; height:30px; margin-top:10px;">
+            </div>
+            <div>
+                <h2 style="color:var(--accent)">Nuevo Terreno</h2>
+                <button class="btn-main" style="background:var(--accent)" onclick="saveTile()">AÑADIR MAPA</button>
+                <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#555; cursor:pointer; margin-top:20px">Cancelar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-/* --- CONFIGURACIÓN BASE --- */
 const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
-const pCanvas = document.getElementById("pixelCanvas"), pctx = pCanvas.getContext("2d");
-let units = [], baseUnits = [], sketches = [], mapObstacles = [], projectiles = [];
-let selectedUnit = null, currentTeam = "blue", battleStarted = false, isEditingMap = false;
-let currentTool = 'pen', drawing = false, isMirror = false, animationFrame = 0;
-let editIndex = -1, mouseGridX = 0, mouseGridY = 0;
-const gridSize = 40, pSize = 15; // Tamaño del píxel en el editor
+const gridSize = 40;
+let currentRes = 16, pSize = 384/16; 
+let baseUnits = [], baseTiles = [], unitsOnMap = [], mapData = {}, tileImgs = [];
+let drawingGallery = [], particles = [], selectedUnit = null, selectedTileIdx = 0, currentTeam = "blue", battleStarted = false;
+let currentTool = 'pen', isMirror = false, drawing = false, editIndex = -1, objetivo = null, mouseX = 0, mouseY = 0;
 
-function resize() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; }
-window.onresize = resize; resize();
+const SKILLS = {
+    melee: [{id:'spin', name:'🌪️ Remolino'}, {id:'dash', name:'⚡ Embestida'}],
+    range: [{id:'poison', name:'🧪 Veneno'}, {id:'burst', name:'🏹 Ráfaga'}],
+    turret: [{id:'snipe', name:'🎯 Sniper'}]
+};
 
-/* --- NUEVAS HERRAMIENTAS DE DIBUJO --- */
-
-function getPixelColor(x, y) {
-    const data = pctx.getImageData(x, y, 1, 1).data;
-    if(data[3] === 0) return null;
-    return "#" + ((1 << 24) + (data[0] << 16) + (data[1] << 8) + data[2]).toString(16).slice(1);
-}
-
-function floodFill(startX, startY, targetColor, fillColor) {
-    if (targetColor === fillColor) return;
-    const pixelsToCheck = [{x: startX, y: startY}];
-    while (pixelsToCheck.length > 0) {
-        const {x, y} = pixelsToCheck.pop();
-        const currentColor = getPixelColor(x, y);
-        if (currentColor === targetColor) {
-            pctx.fillStyle = fillColor;
-            pctx.fillRect(x, y, pSize, pSize);
-            if (x + pSize < 240) pixelsToCheck.push({x: x + pSize, y: y});
-            if (x - pSize >= 0) pixelsToCheck.push({x: x - pSize, y: y});
-            if (y + pSize < 240) pixelsToCheck.push({x: x, y: y + pSize});
-            if (y - pSize >= 0) pixelsToCheck.push({x: x, y: y - pSize});
-        }
+// --- CIERRE DEL MENÚ AL CLICAR AFUERA ---
+window.addEventListener('mousedown', function(e) {
+    const menu = document.getElementById("contextMenu");
+    // Si el menú está visible y el clic no es dentro del menú...
+    if (menu.style.display === "block" && !menu.contains(e.target)) {
+        menu.style.display = "none";
     }
+});
+
+// --- RESTO DE FUNCIONES ---
+function setRes(res, btn) {
+    currentRes = res; pSize = 384 / res;
+    document.querySelectorAll('.res-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById("uCanvas").getContext("2d").clearRect(0,0,384,384);
 }
 
-function toggleMirror() {
-    isMirror = !isMirror;
-    document.getElementById("mirrorBtn").classList.toggle("active", isMirror);
+function saveToGallery() {
+    drawingGallery.push({ img: document.getElementById("uCanvas").toDataURL(), res: currentRes });
+    localStorage.setItem('tabs_gallery_v2', JSON.stringify(drawingGallery));
+    renderGallery();
 }
 
-function movePixels(dx, dy) {
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = 240; tempCanvas.height = 240;
-    tempCanvas.getContext("2d").drawImage(pCanvas, 0, 0);
-    pctx.clearRect(0, 0, 240, 240);
-    pctx.drawImage(tempCanvas, dx * pSize, dy * pSize);
+function renderGallery() {
+    const div = document.getElementById("uGallery");
+    div.innerHTML = drawingGallery.map((d, i) => `
+        <div class="gallery-item" onclick="loadFromGallery(${i})">
+            <img src="${d.img}"><button class="btn-del-mini" onclick="deleteFromGallery(${i}, event)">×</button>
+        </div>`).join('');
 }
 
-function drawAt(e) {
-    const rect = pCanvas.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / pSize) * pSize;
-    const y = Math.floor((e.clientY - rect.top) / pSize) * pSize;
-    const color = document.getElementById("pixelColor").value;
+function loadFromGallery(i) {
+    const d = drawingGallery[i]; currentRes = d.res; pSize = 384 / d.res;
+    const img = new Image(); img.src = d.img;
+    img.onload = () => { const c = document.getElementById("uCanvas").getContext("2d"); c.clearRect(0,0,384,384); c.drawImage(img,0,0,384,384); };
+}
 
-    if (currentTool === 'picker') {
-        const picked = getPixelColor(x, y);
-        if (picked) document.getElementById("pixelColor").value = picked;
-        setTool('pen');
-        return;
-    }
+function deleteFromGallery(i, e) { e.stopPropagation(); drawingGallery.splice(i,1); localStorage.setItem('tabs_gallery_v2', JSON.stringify(drawingGallery)); renderGallery(); }
 
-    if (currentTool === 'fill') {
-        floodFill(x, y, getPixelColor(x, y), color);
-        return;
-    }
+function exportCurrent() {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(objetivo.data)], {type:'application/json'}));
+    a.download = `${objetivo.data.name}.json`; a.click();
+    document.getElementById("contextMenu").style.display = "none";
+}
 
-    const paint = (px, py) => {
-        if (currentTool === 'pen') { pctx.fillStyle = color; pctx.fillRect(px, py, pSize, pSize); }
-        else { pctx.clearRect(px, py, pSize, pSize); }
+function importUnit() {
+    const input = document.createElement('input'); input.type = 'file';
+    input.onchange = e => {
+        const reader = new FileReader();
+        reader.onload = f => { baseUnits.push(JSON.parse(f.target.result)); updateUI(); };
+        reader.readAsText(e.target.files[0]);
     };
-
-    paint(x, y);
-    if (isMirror) paint(240 - x - pSize, y);
-}
-
-pCanvas.onmousedown = (e) => { drawing = true; drawAt(e); };
-window.onmouseup = () => drawing = false;
-pCanvas.onmousemove = (e) => { if(drawing) drawAt(e); };
-
-/* --- MOTOR DE COMBATE (Igual al anterior pero integrado) --- */
-
-function calcularDanio(emisor, receptor) {
-    let danio = emisor.atk;
-    if (Math.random() * 100 < emisor.crit) { danio *= 2; crearTextoFlotante(receptor.x, receptor.y - 20, "CRIT!", "#ffcc00"); }
-    danio = Math.max(1, danio - receptor.def);
-    if (emisor.lifesteal > 0) emisor.curHp = Math.min(emisor.hp, emisor.curHp + (danio * emisor.lifesteal / 100));
-    return danio;
-}
-
-let textosFlotantes = [];
-function crearTextoFlotante(x, y, texto, color) { textosFlotantes.push({ x, y, texto, color, life: 60 }); }
-
-class Projectile {
-    constructor(x, y, target, source) { this.x = x; this.y = y; this.target = target; this.source = source; this.speed = 6; this.dead = false; }
-    update() {
-        let d = Math.hypot(this.target.x - this.x, this.target.y - this.y);
-        if (d < 10 || this.target.curHp <= 0) {
-            if (this.target.curHp > 0) this.target.curHp -= calcularDanio(this.source, this.target);
-            this.dead = true;
-        } else { this.x += (this.target.x - this.x) / d * this.speed; this.y += (this.target.y - this.y) / d * this.speed; }
-    }
-    draw() { ctx.fillStyle = "yellow"; ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill(); }
+    input.click();
 }
 
 class Unit {
     constructor(x, y, team, data) {
-        Object.assign(this, data); this.x = x; this.y = y; this.team = team;
-        this.curHp = this.hp; this.cool = 0; this.img = new Image(); this.img.src = this.sprite;
+        Object.assign(this, data);
+        this.x = x; this.y = y; this.team = team; this.curHp = this.hp;
+        this.cool = 0; this.img = new Image(); this.img.src = this.sprite;
+        this.dir = (team === "blue" ? 1 : -1); this.flash = 0; this.poisoned = 0;
+        this.physSize = this.res === 32 ? 80 : 40; 
+    }
+    damage(amt) {
+        this.curHp -= amt; this.flash = 5;
+        if(this.curHp <= 0) for(let i=0; i<6; i++) particles.push({x:this.x, y:this.y, vx:(Math.random()-0.5)*5, vy:(Math.random()-0.5)*5, life:1, color:this.team==='blue'?'#00f':'#f00'});
     }
     update() {
         if(!battleStarted) return;
-        let isStatic = (this.type === 'structure' || this.type === 'turret');
-        let enemies = units.filter(u => u.team !== this.team);
+        if(this.poisoned > 0) { this.curHp -= 0.15; this.poisoned--; }
+        let enemies = unitsOnMap.filter(u => u.team !== this.team);
         if(!enemies.length) return;
         let target = enemies.reduce((p, c) => Math.hypot(c.x-this.x, c.y-this.y) < Math.hypot(p.x-this.x, p.y-this.y) ? c : p);
         let d = Math.hypot(target.x-this.x, target.y-this.y);
+        this.dir = target.x > this.x ? 1 : -1;
 
-        if (!isStatic && d > this.rng) {
-            let vx = (target.x-this.x)/d * this.spd, vy = (target.y-this.y)/d * this.spd;
-            if(!mapObstacles.some(o => Math.abs(o.x - (this.x+vx)) < 25 && Math.abs(o.y - (this.y+vy)) < 25)) { this.x += vx; this.y += vy; }
-        } else if (d <= this.rng && this.cool <= 0) {
-            if (this.type === 'range' || this.type === 'turret') projectiles.push(new Projectile(this.x, this.y, target, this));
-            else if (this.type !== 'structure') target.curHp -= calcularDanio(this, target);
-            this.cool = this.rate;
+        if(this.type !== 'structure' && this.type !== 'turret' && d > this.rng) {
+            let s = this.skill === 'dash' ? this.spd*2.5 : this.spd;
+            this.x += (target.x-this.x)/d * s; this.y += (target.y-this.y)/d * s;
         }
-        if(this.cool > 0) this.cool--;
+
+        if(d <= this.rng && this.cool <= 0) {
+            if(this.skill === 'spin') unitsOnMap.filter(u => u.team !== this.team && Math.hypot(u.x-this.x, u.y-this.y) < 100).forEach(u => u.damage(this.atk));
+            if(this.skill === 'poison') target.poisoned = 200;
+            target.damage(this.atk); this.cool = 60;
+        }
+        if(this.cool > 0) this.cool--; if(this.flash > 0) this.flash--;
     }
-    draw() {
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(this.img, this.x-20, this.y-20, 40, 40);
-        ctx.fillStyle="rgba(0,0,0,0.5)"; ctx.fillRect(this.x-15, this.y-28, 30, 4);
-        ctx.fillStyle=this.team === "blue" ? "#00f" : "#f00"; ctx.fillRect(this.x-15, this.y-28, 30*(this.curHp/this.hp), 4);
+    draw(isGhost = false) {
+        ctx.save(); ctx.translate(this.x, this.y);
+        if(isGhost) ctx.globalAlpha = 0.4;
+        if(this.dir === -1) ctx.scale(-1, 1);
+        if(this.flash > 0) ctx.filter = "brightness(5)";
+        ctx.drawImage(this.img, -this.physSize/2, -this.physSize/2, this.physSize, this.physSize);
+        ctx.restore();
+        ctx.globalAlpha = 1;
+        if(!isGhost) {
+            ctx.fillStyle="black"; ctx.fillRect(this.x-15, this.y-(this.physSize/2 + 10), 30, 4);
+            ctx.fillStyle=this.team === "blue" ? "#0088ff" : "#ff4444";
+            ctx.fillRect(this.x-15, this.y-(this.physSize/2 + 10), Math.max(0, 30*(this.curHp/this.hp)), 4);
+        }
     }
 }
 
-/* --- LOGICA UI --- */
+function autoAdjustRange() {
+    const t = document.getElementById("uType").value;
+    document.getElementById("uRng").value = t === 'melee' ? 45 : t === 'range' ? 220 : 300;
+    const s = document.getElementById("uSkill"); s.innerHTML = '<option value="none">Ninguna</option>';
+    (SKILLS[t] || []).forEach(sk => s.innerHTML += `<option value="${sk.id}">${sk.name}</option>`);
+}
+
+function setupTools(id) {
+    const tools = [{i:'✏️', t:'pen'}, {i:'🧽', t:'eraser'}, {i:'🎨', t:'fill'}];
+    document.getElementById(id).innerHTML = tools.map(tool => `<button class="tool-btn ${tool.t==='pen'?'active':''}" onclick="setTool('${tool.t}', this)">${tool.i}</button>`).join('') + `<button class="tool-btn" onclick="toggleMirror(this)">🌓</button>`;
+}
+setupTools('uTools'); setupTools('tTools');
+function setTool(t, b) { currentTool = t; b.parentNode.querySelectorAll('.tool-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); }
+function toggleMirror(b) { isMirror = !isMirror; b.classList.toggle('active'); }
+
+function paint(canv, e) {
+    if(!drawing) return;
+    const r = canv.getBoundingClientRect();
+    const x = Math.floor(((e.clientX - r.left) * (canv.width/r.width)) / pSize) * pSize;
+    const y = Math.floor(((e.clientY - r.top) * (canv.height/r.height)) / pSize) * pSize;
+    const pctx = canv.getContext("2d");
+    const color = document.getElementById(canv.id === "uCanvas" ? "uColor" : "tColor").value;
+    if(currentTool === 'eraser') pctx.clearRect(x, y, pSize, pSize);
+    else if(currentTool === 'fill') pctx.fillRect(0,0,384,384);
+    else { pctx.fillStyle = color; pctx.fillRect(x, y, pSize, pSize); if(isMirror) pctx.fillRect(384-x-pSize, y, pSize, pSize); }
+}
+
+[document.getElementById("uCanvas"), document.getElementById("tCanvas")].forEach(c => {
+    c.onmousedown = (e) => { drawing = true; paint(c, e); };
+    c.onmousemove = (e) => paint(c, e);
+});
+
+window.onmouseup = () => drawing = false;
+
 canvas.onmousemove = (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouseGridX = Math.floor((e.clientX - rect.left) / gridSize) * gridSize + gridSize/2;
-    mouseGridY = Math.floor((e.clientY - rect.top) / gridSize) * gridSize + gridSize/2;
+    const r = canvas.getBoundingClientRect();
+    mouseX = e.clientX - r.left; mouseY = e.clientY - r.top;
 };
 
-canvas.onclick = () => {
+canvas.onclick = (e) => {
     if(battleStarted) return;
-    if(isEditingMap) {
-        const i = mapObstacles.findIndex(o => o.x === mouseGridX && o.y === mouseGridY);
-        if(i > -1) mapObstacles.splice(i, 1); else mapObstacles.push({x:mouseGridX, y:mouseGridY});
-        return;
-    }
-    if(!selectedUnit) return;
-    if(!units.some(u => u.x === mouseGridX && u.y === mouseGridY)) units.push(new Unit(mouseGridX, mouseGridY, currentTeam, selectedUnit));
+    const r = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - r.left) / gridSize) * gridSize;
+    const y = Math.floor((e.clientY - r.top) / gridSize) * gridSize;
+    if(e.shiftKey) { mapData[`${x},${y}`] = selectedTileIdx; }
+    else if(selectedUnit) { unitsOnMap.push(new Unit(x+20, y+20, currentTeam, selectedUnit)); }
 };
+
+function saveUnit(upd) {
+    const d = { 
+        name: document.getElementById("uName").value, type: document.getElementById("uType").value, 
+        skill: document.getElementById("uSkill").value, sprite: document.getElementById("uCanvas").toDataURL(), 
+        hp: +document.getElementById("uHp").value, atk: +document.getElementById("uAtk").value, 
+        spd: +document.getElementById("uSpd").value, rng: +document.getElementById("uRng").value, res: currentRes
+    };
+    if(upd && editIndex !== -1) baseUnits[editIndex] = d; else baseUnits.push(d);
+    updateUI(); closeModals();
+}
+
+function saveTile() { baseTiles.push(document.getElementById("tCanvas").toDataURL()); updateUI(); closeModals(); }
+
+function updateUI() {
+    const ub = document.getElementById("unitButtons"); ub.innerHTML = "";
+    baseUnits.forEach((u, i) => {
+        const b = document.createElement("div"); b.className = "unitBtn" + (selectedUnit === u ? " selected" : "");
+        b.innerHTML = `<img src="${u.sprite}">`; b.onclick = () => { selectedUnit = u; updateUI(); };
+        b.oncontextmenu = (e) => { 
+            e.preventDefault(); 
+            objetivo = {index: i, data: u}; 
+            const m = document.getElementById("contextMenu"); 
+            m.style.display="block"; m.style.left=e.pageX+"px"; m.style.top=e.pageY+"px"; 
+        };
+        ub.appendChild(b);
+    });
+    const tb = document.getElementById("tileLibrary"); tb.innerHTML = "";
+    baseTiles.forEach((t, i) => {
+        const b = document.createElement("div"); b.className = "tileBtn" + (selectedTileIdx === i ? " selected" : "");
+        b.innerHTML = `<img src="${t}">`; b.onclick = () => { selectedTileIdx = i; updateUI(); };
+        tb.appendChild(b); tileImgs[i] = new Image(); tileImgs[i].src = t;
+    });
+    localStorage.setItem('tabs_final_save', JSON.stringify({u:baseUnits, t:baseTiles}));
+}
+
+function openCreator() { editIndex = -1; document.getElementById("uCanvas").getContext("2d").clearRect(0,0,384,384); autoAdjustRange(); document.getElementById("updateBtn").style.display="none"; document.getElementById("creatorPanel").style.display="block"; }
+function openTileEditor() { document.getElementById("tCanvas").getContext("2d").clearRect(0,0,256,256); document.getElementById("tileModal").style.display="block"; }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = "none"); }
+
+function editCurrent() {
+    editIndex = objetivo.index; const d = objetivo.data;
+    document.getElementById("uName").value = d.name; document.getElementById("uType").value = d.type; autoAdjustRange();
+    document.getElementById("uSkill").value = d.skill; document.getElementById("uHp").value = d.hp;
+    document.getElementById("uAtk").value = d.atk; document.getElementById("uSpd").value = d.spd;
+    currentRes = d.res || 16; pSize = 384 / currentRes;
+    const img = new Image(); img.src = d.sprite; 
+    img.onload = () => { const c = document.getElementById("uCanvas").getContext("2d"); c.clearRect(0,0,384,384); c.drawImage(img,0,0,384,384); };
+    document.getElementById("updateBtn").style.display="block"; document.getElementById("creatorPanel").style.display="block";
+    document.getElementById("contextMenu").style.display = "none";
+}
+function deleteCurrent() { baseUnits.splice(objetivo.index, 1); updateUI(); document.getElementById("contextMenu").style.display = "none"; }
 
 function loop() {
-    animationFrame++;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.beginPath();
+    for(let x=0; x<canvas.width; x+=gridSize) { ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
+    for(let y=0; y<canvas.height; y+=gridSize) { ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
+    ctx.stroke();
+    for(let k in mapData) { const [x,y] = k.split(",").map(Number); if(tileImgs[mapData[k]]) ctx.drawImage(tileImgs[mapData[k]], x, y, 40, 40); }
+    
     if(!battleStarted) {
-        ctx.strokeStyle = "#222";
-        for(let x=0; x<canvas.width; x+=gridSize) ctx.strokeRect(x, 0, 0.5, canvas.height);
-        for(let y=0; y<canvas.height; y+=gridSize) ctx.strokeRect(0, y, canvas.width, 0.5);
+        const gx = Math.floor(mouseX / gridSize) * gridSize;
+        const gy = Math.floor(mouseY / gridSize) * gridSize;
+        if(window.event && window.event.shiftKey) { if(tileImgs[selectedTileIdx]) { ctx.globalAlpha = 0.3; ctx.drawImage(tileImgs[selectedTileIdx], gx, gy, 40, 40); ctx.globalAlpha = 1; } }
+        else if(selectedUnit) { let ghost = new Unit(gx+20, gy+20, currentTeam, selectedUnit); ghost.draw(true); }
     }
-    mapObstacles.forEach(o => { ctx.fillStyle="#444"; ctx.fillRect(o.x-18, o.y-18, 36, 36); });
-    projectiles.forEach((p, i) => { p.update(); p.draw(); if(p.dead) projectiles.splice(i,1); });
-    units.forEach(u => { u.update(); u.draw(); });
-    textosFlotantes.forEach((t, i) => { ctx.fillStyle = t.color; ctx.fillText(t.texto, t.x, t.y); t.y -= 0.5; t.life--; if(t.life<=0) textosFlotantes.splice(i,1); });
-    units = units.filter(u => u.curHp > 0);
-    requestAnimationFrame(loop);
+
+    unitsOnMap.forEach(u => { u.update(); u.draw(); });
+    unitsOnMap = unitsOnMap.filter(u => u.curHp > 0);
+    particles.forEach((p, i) => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); p.x += p.vx; p.y += p.vy; p.life -= 0.02; if(p.life <= 0) particles.splice(i, 1); });
+    ctx.globalAlpha = 1; requestAnimationFrame(loop);
 }
 
-/* --- UTILIDADES --- */
-function setTool(t) { currentTool = t; document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); event.currentTarget.classList.add('active'); }
-function resetGrid() { pctx.clearRect(0,0,240,240); }
-function openCreator() { editIndex = -1; document.getElementById("editorTitle").innerText = "Nuevo Guerrero"; document.getElementById("btnUpdate").style.display = "none"; document.getElementById("creatorPanel").style.display="block"; renderSketches(); }
-function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display="none"); isEditingMap=false; }
-function saveUnit(isUpdate) {
-    const d = { name: document.getElementById("name").value, type: document.getElementById("unitType").value, sprite: pCanvas.toDataURL(), hp: +document.getElementById("hp").value, atk: +document.getElementById("atk").value, def: +document.getElementById("def").value, spd: +document.getElementById("spd").value, rng: +document.getElementById("rng").value, rate: +document.getElementById("rate").value, crit: +document.getElementById("crit").value, lifesteal: +document.getElementById("lifesteal").value };
-    if(isUpdate && editIndex > -1) baseUnits[editIndex] = d; else baseUnits.push(d);
-    updateButtons(); saveAll(); closeModals();
-}
-function updateButtons() {
-    const g = document.getElementById("unitButtons"); g.innerHTML = "";
-    baseUnits.forEach((u, i) => {
-        const b = document.createElement("button"); b.className = "unitBtn"; b.innerHTML = `<img src="${u.sprite}" width="30">`;
-        b.onclick = () => { selectedUnit = u; updateButtons(); };
-        if(selectedUnit === u) b.classList.add("selected");
-        g.appendChild(b);
-    });
-}
-function saveAll() { localStorage.setItem('tabs_final_v5', JSON.stringify(baseUnits)); localStorage.setItem('tabs_sketches_v5', JSON.stringify(sketches)); }
-function toggleTeam() { currentTeam = currentTeam==="blue"?"red":"blue"; document.getElementById("teamBtn").innerHTML = (currentTeam==="blue"?"🔵":"🔴")+"<small>Bando</small>"; }
+function toggleTeam() { currentTeam = currentTeam === "blue" ? "red" : "blue"; document.getElementById("teamBtn").innerHTML = (currentTeam === "blue" ? "🔵" : "🔴") + "<br><small>Bando</small>"; }
 function startBattle() { battleStarted = true; }
-function clearUnits() { units = []; projectiles = []; battleStarted = false; }
-function toggleMapEditing() { isEditingMap = !isEditingMap; }
-function clearMap() { mapObstacles = []; }
-function saveSketch() { sketches.push(pCanvas.toDataURL()); renderSketches(); saveAll(); }
-function renderSketches() {
-    const gal = document.getElementById("sketchGallery"); gal.innerHTML = "";
-    sketches.forEach(s => {
-        const img = document.createElement("img"); img.src = s; img.className="sketch-item";
-        img.onclick = () => { const i = new Image(); i.src=s; i.onload=()=> { pctx.clearRect(0,0,240,240); pctx.drawImage(i,0,0,240,240); }};
-        gal.appendChild(img);
-    });
-}
-window.oncontextmenu = (e) => {
-    e.preventDefault(); const rect = canvas.getBoundingClientRect();
-    const btn = e.target.closest('.unitBtn');
-    if(btn) { 
-        const id = Array.from(btn.parentNode.children).indexOf(btn);
-        objetivo = {type:'base', index: id, data: baseUnits[id]};
-        document.getElementById("contextMenu").style.display = "block";
-        document.getElementById("contextMenu").style.left = e.pageX + "px";
-        document.getElementById("contextMenu").style.top = e.pageY + "px";
-    }
-};
-function cargarEnEditor() {
-    const data = objetivo.data; editIndex = objetivo.index; openCreator();
-    document.getElementById("name").value = data.name; document.getElementById("btnUpdate").style.display = "block";
-    const img = new Image(); img.src = data.sprite; img.onload = () => { pctx.clearRect(0,0,240,240); pctx.drawImage(img,0,0,240,240); };
-}
-function borrarObjetivo() { baseUnits.splice(objetivo.index, 1); updateButtons(); saveAll(); }
+function clearUnits() { unitsOnMap = []; mapData = {}; battleStarted = false; }
 
-const su = localStorage.getItem('tabs_final_v5'), ss = localStorage.getItem('tabs_sketches_v5');
-if(su) baseUnits = JSON.parse(su); if(ss) sketches = JSON.parse(ss);
-updateButtons();
-loop();
+window.onload = () => {
+    const r = canvas.parentElement.getBoundingClientRect(); canvas.width = r.width; canvas.height = r.height;
+    const g = localStorage.getItem('tabs_gallery_v2'); if(g) drawingGallery = JSON.parse(g); renderGallery();
+    const s = localStorage.getItem('tabs_final_save'); if(s) { const d = JSON.parse(s); baseUnits = d.u || []; baseTiles = d.t || []; }
+    updateUI(); loop();
+};
 </script>
 </body>
 </html>
